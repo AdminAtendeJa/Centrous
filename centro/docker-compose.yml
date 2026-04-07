@@ -1,0 +1,43 @@
+version: '3.9'
+
+services:
+  # ── Backend (Express API) ──────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: centro-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+    expose:
+      - "3001"
+    networks:
+      - centro-network
+    healthcheck:
+      test: [ "CMD", "wget", "-qO-", "http://localhost:3001/api/health" ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ── Frontend (Nginx serving Vite build) ────────────────────────────────────
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: centro-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - centro-network
+
+networks:
+  centro-network:
+    driver: bridge

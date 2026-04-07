@@ -1,0 +1,160 @@
+.sidebar {
+    width: var(--sidebar-width);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    background: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+    overflow-y: auto;
+}
+
+.sidebarLogo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 20px 18px 16px;
+    border-bottom: 1px solid var(--color-border);
+    text-decoration: none;
+}
+
+.sidebarLogoIcon {
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px var(--color-primary-glow);
+}
+
+.sidebarLogoText {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+.sidebarLogoText span {
+    font-weight: 300;
+    color: var(--text-muted);
+}
+
+.sidebarNav {
+    flex: 1;
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.navSectionLabel {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 10px 10px 4px;
+}
+
+.navItem {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: var(--transition);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+}
+
+.navItem:hover {
+    background: var(--color-surface-2);
+    color: var(--text-primary);
+}
+
+.navItem.active {
+    background: rgba(108, 99, 255, 0.15);
+    color: var(--color-primary-light);
+}
+
+.navItem.active .navIcon {
+    color: var(--color-primary-light);
+}
+
+.navIcon {
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.navItem.active .navIcon {
+    opacity: 1;
+}
+
+.navBadge {
+    margin-left: auto;
+    background: var(--color-primary);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 99px;
+}
+
+.sidebarFooter {
+    padding: 12px 10px;
+    border-top: 1px solid var(--color-border);
+}
+
+.sidebarClock {
+    text-align: center;
+    padding: 8px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}
+
+.sidebarClockDate {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: -2px;
+    text-transform: capitalize;
+}
+
+@media (max-width: 640px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        flex-direction: row;
+        align-items: center;
+        padding: 0 16px;
+        overflow: hidden;
+    }
+
+    .sidebarNav,
+    .sidebarFooter {
+        display: none;
+    }
+}
