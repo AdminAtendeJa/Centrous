@@ -9,9 +9,11 @@ import CRM from './pages/CRM/CRM.jsx';
 import Proposals from './pages/Proposals/Proposals.jsx';
 import Productivity from './pages/Productivity/Productivity.jsx';
 import Settings from './pages/Settings/Settings.jsx';
+import Onboarding from './pages/Onboarding/Onboarding.jsx';
+import Inbox from './pages/Inbox/Inbox.jsx';
 import { useEffect } from 'react';
 import { io } from 'socket.io-client';
-import { useCRMStore, useUIStore } from './store/index.js';
+import { useCRMStore, useUIStore, useOnboardingStore } from './store/index.js';
 import Copilot from './components/ui/Copilot.jsx';
 
 // Conectar al backend (proxy bypass o directo al puerto del server Express)
@@ -70,31 +72,37 @@ function BodyScrollLock() {
 
 export default function App() {
     const isDrawerExpanded = useUIStore(s => s.isDrawerExpanded);
+    const onboardingCompleted = useOnboardingStore(s => s.onboardingCompleted);
 
     return (
         <BrowserRouter>
-            <div className={`app-layout ${isDrawerExpanded ? 'drawer-expanded-view' : ''}`}>
-                <SocketManager />
-                <BodyScrollLock />
-                <Copilot />
-                <Sidebar />
-                <main className="page-content">
-                    <ErrorBoundary>
-                        <Routes>
-                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                            <Route path="/dashboard" element={<Dashboard />} />
-                            <Route path="/notion" element={<NotionHub />} />
-                            <Route path="/n8n" element={<N8nMonitor />} />
-                            <Route path="/social" element={<SocialMedia />} />
-                            <Route path="/crm" element={<CRM />} />
-                            <Route path="/proposals" element={<Proposals />} />
-                            <Route path="/productivity" element={<Productivity />} />
-                            <Route path="/settings" element={<Settings />} />
-                            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                        </Routes>
-                    </ErrorBoundary>
-                </main>
-            </div>
+            {!onboardingCompleted ? (
+                <Onboarding />
+            ) : (
+                <div className={`app-layout ${isDrawerExpanded ? 'drawer-expanded-view' : ''}`}>
+                    <SocketManager />
+                    <BodyScrollLock />
+                    <Copilot />
+                    <Sidebar />
+                    <main className="page-content">
+                        <ErrorBoundary>
+                            <Routes>
+                                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                <Route path="/dashboard" element={<Dashboard />} />
+                                <Route path="/notion" element={<NotionHub />} />
+                                <Route path="/n8n" element={<N8nMonitor />} />
+                                <Route path="/social" element={<SocialMedia />} />
+                                <Route path="/crm" element={<CRM />} />
+                                <Route path="/inbox" element={<Inbox />} />
+                                <Route path="/proposals" element={<Proposals />} />
+                                <Route path="/productivity" element={<Productivity />} />
+                                <Route path="/settings" element={<Settings />} />
+                                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                            </Routes>
+                        </ErrorBoundary>
+                    </main>
+                </div>
+            )}
         </BrowserRouter>
     );
 }

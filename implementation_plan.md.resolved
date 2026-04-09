@@ -1,0 +1,149 @@
+# Centro — Command Center para Empresa de Automatizaciones
+
+Dashboard web todo-en-uno para gestionar tu negocio de automatización: Notion, n8n, Redes Sociales, CRM, Productividad — desde un solo lugar.
+
+---
+
+## User Review Required
+
+> [!IMPORTANT]
+> La app corre **localmente con `npm run dev`** y también en **Docker** (accesible desde cualquier dispositivo en tu red local o servidor remoto). Las API Keys se guardan en un `.env` nunca committeado a git.
+
+> [!NOTE]
+> Las integraciones de Meta Ads (Instagram/Facebook) requieren acceso a Meta Business API. La primera versión incluye datos de **demo realistas** para todos los módulos — se reemplazan automáticamente cuando configuras tus API Keys en Ajustes.
+
+---
+
+## Stack Tecnológico
+
+| Capa | Tecnología | Razón |
+|------|-----------|-------|
+| Frontend | Vite + React 18 | Rápido, modular, escalable |
+| Backend | Node.js + Express | Proxy seguro de APIs externas |
+| Estilos | CSS Modules + Variables | Sin conflictos, escalable |
+| Estado | Zustand | Ligero, sin boilerplate |
+| Router | React Router v6 | Navegación SPA |
+| HTTP client | Axios | Interceptores de error global |
+| Contenedor | Docker + docker-compose | Deploy en servidor |
+| Reverse proxy | Nginx (en Docker) | Sirve frontend + proxy al backend |
+
+---
+
+## Estructura de Carpetas (Escalable)
+
+```
+centro/
+├── client/                    # Frontend React
+│   ├── public/
+│   ├── src/
+│   │   ├── assets/            # Imágenes, íconos
+│   │   ├── components/        # Componentes reutilizables
+│   │   │   ├── ui/            # Botones, cards, modals, badges
+│   │   │   ├── layout/        # Sidebar, Header, PageWrapper
+│   │   │   └── charts/        # Gráficos reutilizables
+│   │   ├── pages/             # Una carpeta por módulo
+│   │   │   ├── Dashboard/
+│   │   │   ├── NotionHub/
+│   │   │   ├── N8nMonitor/
+│   │   │   ├── SocialMedia/
+│   │   │   ├── CRM/
+│   │   │   ├── Proposals/
+│   │   │   ├── Productivity/
+│   │   │   └── Settings/
+│   │   ├── hooks/             # Custom hooks (useNotion, useN8n…)
+│   │   ├── store/             # Zustand stores por dominio
+│   │   ├── services/          # Llamadas API centralizadas
+│   │   ├── utils/             # Helpers puros (fechas, formateo…)
+│   │   ├── constants/         # Rutas, configs, colores
+│   │   └── App.jsx
+│   ├── Dockerfile
+│   └── vite.config.js
+│
+├── server/                    # Backend Express
+│   ├── src/
+│   │   ├── routes/            # Una ruta por integración
+│   │   │   ├── notion.routes.js
+│   │   │   ├── n8n.routes.js
+│   │   │   ├── google.routes.js
+│   │   │   └── meta.routes.js
+│   │   ├── controllers/       # Lógica de negocio separada de rutas
+│   │   ├── middleware/        # Auth, error handler, logger
+│   │   ├── services/          # Clientes de APIs externas
+│   │   └── app.js
+│   ├── Dockerfile
+│   └── package.json
+│
+├── nginx/                     # Reverse proxy
+│   └── nginx.conf
+│
+├── docker-compose.yml         # Orquestación completa
+├── docker-compose.dev.yml     # Config de desarrollo local
+├── .env.example               # Template de variables de entorno
+└── README.md
+```
+
+---
+
+## Estrategia de Manejo de Errores
+
+### Frontend
+- **Error Boundaries** en React: cada módulo tiene su propio boundary → un módulo roto no tumbra toda la app
+- **Axios interceptors**: si la API responde 401/403/500, se muestra un toast de error sin crashear
+- **Estado "empty" + "loading" + "error"**: cada componente maneja sus 3 estados
+- **Fallback a datos demo**: si no hay API Key configurada, el módulo muestra datos de ejemplo con un banner "Conecta tu cuenta"
+
+### Backend
+- **Middleware de error global**: captura excepciones no manejadas y devuelve JSON estándar `{ error, message, status }`
+- **Validación de env vars al inicio**: si falta una variable crítica, el servidor lo indica claramente al arrancar
+- **Timeout en llamadas externas**: Axios con timeout de 10s para evitar cuelgues
+- **Logs estructurados**: Morgan + un logger simple con niveles (info/warn/error)
+
+---
+
+## Módulos
+
+| # | Módulo | Funcionalidade clave |
+|---|--------|---------------------|
+| 1 | 🏠 Dashboard | KPIs, tareas del día, feed actividad, acceso rápido |
+| 2 | 📝 Notion Hub | Páginas y bases de datos en tiempo real |
+| 3 | ⚙️ n8n Monitor | Estado workflows, últimas ejecuciones, toggle on/off |
+| 4 | 📊 Social Media | Métricas de anuncios, calendario de contenido |
+| 5 | 🎯 CRM | Kanban de pipeline (Nuevo→Calificado→Propuesta→Cerrado) |
+| 6 | 💼 Propuestas | Tracker de cotizaciones con valor potencial |
+| 7 | 🧠 Productividad | Quick Notes, Pomodoro, Inbox Gmail |
+| 8 | ⚙️ Ajustes | API Keys, perfil empresa, toggle de módulos |
+
+---
+
+## Docker — Deploy en Servidor
+
+```yaml
+# docker-compose.yml (resumen)
+services:
+  frontend:   # Vite build → servido por Nginx
+  backend:    # Express API proxy
+  nginx:      # Reverse proxy: / → frontend, /api → backend
+```
+
+- **Desarrollo**: `docker-compose -f docker-compose.dev.yml up` (hot reload)
+- **Producción**: `docker-compose up -d --build`
+- Accesible en cualquier dispositivo en la red: `http://IP-DEL-SERVIDOR:80`
+
+---
+
+## Verificación
+
+### Local
+1. `npm run dev` en `client/` → `http://localhost:5173`
+2. `node src/app.js` en `server/` → `http://localhost:3001`
+3. Navegar todos los módulos, verificar estados loading/error/empty
+
+### Docker
+1. `docker-compose up --build`
+2. Abrir `http://localhost` 
+3. Verificar que frontend y backend se comuniquen correctamente
+
+### Integraciones
+- Ingresar Notion API Key → verificar que carguen páginas reales
+- Ingresar n8n URL → verificar que aparezcan workflows
+- Sin API Key → verificar que aparecen datos demo + banner de conexión

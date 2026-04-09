@@ -1,0 +1,613 @@
+/* ============================================================
+   CENTRO — ONBOARDING
+   Dark premium design · 5-step wizard
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap');
+
+/* ── Root ── */
+.ob-root {
+    position: fixed;
+    inset: 0;
+    background: #080b12;
+    color: #e8edf5;
+    font-family: 'DM Sans', 'Inter', sans-serif;
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+/* ── Animated background ── */
+.ob-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(#1e2a40 1px, transparent 1px),
+        linear-gradient(90deg, #1e2a40 1px, transparent 1px);
+    background-size: 60px 60px;
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.ob-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    animation: obOrbFloat 8s ease-in-out infinite;
+}
+
+.ob-orb-1 {
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(0, 212, 170, 0.08) 0%, transparent 70%);
+    top: -150px;
+    right: -100px;
+}
+
+.ob-orb-2 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(108, 99, 255, 0.12) 0%, transparent 70%);
+    bottom: -100px;
+    left: -100px;
+    animation-delay: 3s;
+}
+
+@keyframes obOrbFloat {
+
+    0%,
+    100% {
+        transform: translateY(0px) scale(1);
+    }
+
+    50% {
+        transform: translateY(-30px) scale(1.05);
+    }
+}
+
+/* ── Header ── */
+.ob-header {
+    position: relative;
+    z-index: 1;
+    padding: 24px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #1e2a40;
+    background: rgba(8, 11, 18, 0.8);
+    backdrop-filter: blur(20px);
+}
+
+.ob-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.25rem;
+    letter-spacing: -0.02em;
+}
+
+.ob-logo span {
+    color: #00d4aa;
+}
+
+.ob-logo-icon {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #00d4aa, #6c63ff);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.ob-step-counter {
+    font-size: 0.75rem;
+    color: #6b7a99;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+/* ── Progress bar ── */
+.ob-progress-bar {
+    position: relative;
+    z-index: 1;
+    height: 2px;
+    background: #1e2a40;
+    overflow: visible;
+}
+
+.ob-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #6c63ff, #00d4aa);
+    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.ob-progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -3px;
+    top: -3px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #00d4aa;
+    box-shadow: 0 0 14px #00d4aa;
+}
+
+/* ── Main ── */
+.ob-main {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    overflow-y: auto;
+}
+
+/* ── Step container ── */
+.ob-container {
+    width: 100%;
+    max-width: 640px;
+    animation: obStepIn 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.ob-exit {
+    animation: obStepOut 0.22s cubic-bezier(0.4, 0, 0.2, 1) both !important;
+}
+
+@keyframes obStepIn {
+    from {
+        opacity: 0;
+        transform: translateY(28px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes obStepOut {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-16px);
+    }
+}
+
+/* ── Badge ── */
+.ob-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 5px 13px;
+    background: rgba(0, 212, 170, 0.08);
+    border: 1px solid rgba(0, 212, 170, 0.22);
+    border-radius: 20px;
+    font-size: 0.72rem;
+    color: #00d4aa;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+}
+
+.ob-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #00d4aa;
+    box-shadow: 0 0 8px #00d4aa;
+    animation: obPulse 2s ease infinite;
+}
+
+@keyframes obPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.45;
+        transform: scale(0.75);
+    }
+}
+
+/* ── Typography ── */
+.ob-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.1rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 10px;
+}
+
+.ob-highlight {
+    background: linear-gradient(135deg, #00d4aa, #6c63ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.ob-subtitle {
+    color: #6b7a99;
+    font-size: 0.97rem;
+    font-weight: 300;
+    line-height: 1.65;
+    margin-bottom: 32px;
+}
+
+/* ── AI message box ── */
+.ob-ai-box {
+    background: #0f1420;
+    border: 1px solid #1e2a40;
+    border-radius: 16px;
+    padding: 18px 22px;
+    margin-bottom: 28px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    position: relative;
+    overflow: hidden;
+}
+
+.ob-ai-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #6c63ff, transparent);
+}
+
+.ob-ai-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #6c63ff, #00d4aa);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+    box-shadow: 0 0 20px rgba(108, 99, 255, 0.3);
+}
+
+.ob-ai-text {
+    font-size: 0.9rem;
+    color: #e8edf5;
+    line-height: 1.65;
+    padding-top: 6px;
+}
+
+.ob-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 14px;
+    background: #00d4aa;
+    margin-left: 2px;
+    vertical-align: middle;
+    animation: obBlink 1s step-end infinite;
+}
+
+@keyframes obBlink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+}
+
+/* ── Input ── */
+.ob-input-group {
+    margin-bottom: 26px;
+}
+
+.ob-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #6b7a99;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 9px;
+}
+
+.ob-input {
+    width: 100%;
+    background: #0f1420;
+    border: 1.5px solid #1e2a40;
+    border-radius: 12px;
+    padding: 13px 17px;
+    color: #e8edf5;
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.ob-input:focus {
+    border-color: #00d4aa;
+    box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.1);
+}
+
+.ob-input::placeholder {
+    color: #3a4560;
+}
+
+/* ── Options grid (6 col) ── */
+.ob-options-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 11px;
+    margin-bottom: 26px;
+}
+
+.ob-options-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.ob-option-card {
+    background: #0f1420;
+    border: 1.5px solid #1e2a40;
+    border-radius: 14px;
+    padding: 16px 14px;
+    cursor: pointer;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.ob-option-card:hover {
+    border-color: rgba(0, 212, 170, 0.4);
+    background: #161d2e;
+    transform: translateY(-2px);
+}
+
+.ob-option-card.ob-selected {
+    border-color: #00d4aa;
+    background: rgba(0, 212, 170, 0.05);
+    box-shadow: 0 0 24px rgba(0, 212, 170, 0.1), inset 0 0 20px rgba(0, 212, 170, 0.03);
+}
+
+.ob-option-card.ob-selected::before {
+    content: '✓';
+    position: absolute;
+    top: 10px;
+    right: 11px;
+    width: 20px;
+    height: 20px;
+    background: #00d4aa;
+    color: #080b12;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 20px;
+    text-align: center;
+}
+
+.ob-option-emoji {
+    font-size: 1.5rem;
+}
+
+.ob-option-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #e8edf5;
+}
+
+.ob-option-desc {
+    font-size: 0.72rem;
+    color: #6b7a99;
+    line-height: 1.4;
+}
+
+/* ── Chip selector ── */
+.ob-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    margin-bottom: 26px;
+}
+
+.ob-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 13px;
+    background: #0f1420;
+    border: 1.5px solid #1e2a40;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.18s;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #6b7a99;
+    user-select: none;
+}
+
+.ob-chip:hover {
+    border-color: rgba(108, 99, 255, 0.4);
+    color: #e8edf5;
+}
+
+.ob-chip.ob-chip-selected {
+    border-color: #6c63ff;
+    background: rgba(108, 99, 255, 0.1);
+    color: #e8edf5;
+}
+
+/* ── CTA Button ── */
+.ob-btn {
+    width: 100%;
+    padding: 15px 26px;
+    background: linear-gradient(135deg, #6c63ff, #00d4aa);
+    border: none;
+    border-radius: 12px;
+    color: #080b12;
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: transform 0.22s, box-shadow 0.22s;
+    position: relative;
+    overflow: hidden;
+}
+
+.ob-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.ob-btn:hover::after {
+    opacity: 1;
+}
+
+.ob-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0, 212, 170, 0.25);
+}
+
+.ob-btn:active {
+    transform: translateY(0);
+}
+
+/* ── Final screen ── */
+.ob-final {
+    text-align: center;
+}
+
+.ob-final-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #6c63ff, #00d4aa);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin: 0 auto 24px;
+    box-shadow: 0 0 60px rgba(0, 212, 170, 0.3);
+    animation: obIconPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes obIconPop {
+    from {
+        transform: scale(0) rotate(-10deg);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+}
+
+.ob-modules-box {
+    background: #0f1420;
+    border: 1px solid #1e2a40;
+    border-radius: 16px;
+    padding: 22px;
+    margin: 24px 0;
+    text-align: left;
+}
+
+.ob-modules-title {
+    font-size: 0.72rem;
+    color: #6b7a99;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+.ob-modules-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 9px;
+}
+
+.ob-module {
+    background: #161d2e;
+    border: 1px solid #1e2a40;
+    border-radius: 10px;
+    padding: 11px;
+    font-size: 0.78rem;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    animation: obModuleSlide 0.4s ease forwards;
+    opacity: 0;
+}
+
+@keyframes obModuleSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ob-module-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+    .ob-header {
+        padding: 18px 20px;
+    }
+
+    .ob-title {
+        font-size: 1.7rem;
+    }
+
+    .ob-options-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ob-modules-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

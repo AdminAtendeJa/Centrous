@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "activeInstanceId": "instance-e1b64787",
+  "instances": [
+    {
+      "id": "instance-e1b64787",
+      "name": "atende-n8n.wi7vgk.easypanel.host · Victor Camacho atendejasolucoesautomaticas@gmai",
+      "host": "https://atende-n8n.wi7vgk.easypanel.host",
+      "syncFolder": "workflows",
+      "projectId": "personal",
+      "projectName": "Personal",
+      "instanceIdentifier": "atende_n8n_wi7vgk_easypanel_host_victor camacho_a",
+      "verification": {
+        "status": "verified",
+        "normalizedHost": "https://atende-n8n.wi7vgk.easypanel.host",
+        "userId": "de829b13-1f7a-48b8-9368-4991adbd3084",
+        "userName": "Victor Camacho atendejasolucoesautomaticas@gmai",
+        "userEmail": "atendejasolucoesautomaticas@gmail.com",
+        "lastCheckedAt": "2026-04-09T08:23:55.859Z"
+      }
+    }
+  ],
+  "host": "https://atende-n8n.wi7vgk.easypanel.host",
+  "syncFolder": "workflows",
+  "projectId": "personal",
+  "projectName": "Personal",
+  "instanceIdentifier": "atende_n8n_wi7vgk_easypanel_host_victor camacho_a"
+}

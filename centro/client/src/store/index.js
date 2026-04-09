@@ -136,3 +136,23 @@ export const useUIStore = create((set) => ({
     isDrawerExpanded: false,
     setIsDrawerExpanded: (val) => set({ isDrawerExpanded: val }),
 }));
+
+// ── Onboarding Store ─────────────────────────────────────────────────────────
+export const useOnboardingStore = create(
+    persist(
+        (set) => ({
+            onboardingCompleted: false,
+            profile: {
+                userName: '',
+                profession: null,
+                apps: [],
+                clientTier: null,
+            },
+            completeOnboarding: (profile) =>
+                set({ onboardingCompleted: true, profile }),
+            resetOnboarding: () =>
+                set({ onboardingCompleted: false, profile: { userName: '', profession: null, apps: [], clientTier: null } }),
+        }),
+        { name: 'centro-onboarding' }
+    )
+);

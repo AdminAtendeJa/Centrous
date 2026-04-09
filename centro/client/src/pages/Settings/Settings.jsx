@@ -132,7 +132,7 @@ export default function Settings() {
                                 onClick={() => {
                                     if (!form.googleClientId) return toast.error('Ingresa el Client ID primero');
                                     toast.success('Iniciando flujo OAuth 2.0...');
-                                    window.open('https://accounts.google.com/o/oauth2/v2/auth', '_blank', 'width=500,height=600');
+                                    window.open(`http://localhost:3000/api/integrations/google/auth?clientId=${form.googleClientId}`, '_blank', 'width=500,height=600');
                                 }}
                             >
                                 <img src="https://www.google.com/favicon.ico" style={{ width: 16 }} />
@@ -159,6 +159,16 @@ export default function Settings() {
                             <ApiField label="Meta App ID" field="metaAppId" placeholder="ID de tu App en Meta for Developers" value={form.metaAppId || ''} onChange={set} />
                             <ApiField label="Meta App Secret" field="metaAppSecret" placeholder="Secreto de tu App" value={form.metaAppSecret || ''} onChange={set} />
                             <ApiField label="System User Access Token" field="metaToken" placeholder="EAAB..." value={form.metaToken || ''} onChange={set} />
+                            <button
+                                className="btn"
+                                style={{ background: '#1877F2', color: '#fff', border: 'none', padding: '10px 14px', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: 'pointer', marginTop: 10 }}
+                                onClick={() => {
+                                    if (!form.metaAppId) return toast.error('Ingresa el App ID de Meta primero');
+                                    window.open(`http://localhost:3000/api/integrations/meta/auth?appId=${form.metaAppId}`, '_blank', 'width=500,height=600');
+                                }}
+                            >
+                                <span style={{ fontWeight: 600, fontSize: 13 }}>Vincular con Facebook / Meta</span>
+                            </button>
                         </>
                     )}
                 </div>

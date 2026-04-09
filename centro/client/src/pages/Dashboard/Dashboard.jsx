@@ -5,7 +5,7 @@ import {
     Plus, CheckCircle2, Circle, Trash2,
     ArrowRight, Zap, AlertCircle
 } from 'lucide-react';
-import { useTasksStore, useCRMStore, useProposalsStore } from '../../store/index.js';
+import { useTasksStore, useCRMStore, useProposalsStore, useOnboardingStore } from '../../store/index.js';
 import { useSettingsStore } from '../../store/index.js';
 
 const QUOTES = [
@@ -21,6 +21,7 @@ export default function Dashboard() {
     const { leads } = useCRMStore();
     const { proposals } = useProposalsStore();
     const { settings } = useSettingsStore();
+    const { profile } = useOnboardingStore();
     const [newTask, setNewTask] = useState('');
     const [quote] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
 
@@ -60,7 +61,7 @@ export default function Dashboard() {
         <div className="animate-in">
             {/* Header */}
             <div className="page-header">
-                <h1>{greeting}, {settings.ownerName || 'Emprendedor'} 👋</h1>
+                <h1>{greeting}, {profile?.userName || settings.ownerName || 'Emprendedor'} 👋</h1>
                 <p style={{ fontStyle: 'italic', color: 'var(--color-primary-light)', marginTop: 4 }}>"{quote}"</p>
             </div>
 
@@ -145,7 +146,7 @@ export default function Dashboard() {
                     <div className="card" style={{ background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(219, 39, 119, 0.05))', border: '1px solid rgba(124, 58, 237, 0.1)' }}>
                         <div className="flex-between mb-3">
                             <h2 style={{ fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <Zap size={14} color="#7c3aed" /> Estado del Agente
+                                <Zap size={14} color="#7c3aed" /> Estado de WorkHub AI
                             </h2>
                             <div className="ai-pulse" style={{ width: 8, height: 8, borderRadius: '50%', background: settings.aiApiKey ? '#22c55e' : '#64748b' }} />
                         </div>
@@ -160,6 +161,18 @@ export default function Dashboard() {
                             )}
                         </div>
                     </div>
+
+                    {/* Integrated Apps */}
+                    {profile?.apps?.length > 0 && (
+                        <div className="card">
+                            <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Apps Conectadas</h2>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                {profile.apps.map(app => (
+                                    <span key={app} className="badge badge-primary">{app}</span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Quick actions */}
                     <div className="card">

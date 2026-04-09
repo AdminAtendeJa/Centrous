@@ -1,0 +1,43 @@
+{
+  "updatedAt": "2026-04-07T11:08:17.371Z",
+  "createdAt": "2026-04-07T11:08:17.371Z",
+  "id": "WSdBKEWOOwwdGtLI",
+  "name": "Untitled-1775560092976",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [],
+  "connections": {},
+  "settings": {
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "7bcc29f3-9894-4424-a2d0-a0156501a274",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-04-07T11:08:17.373Z",
+      "createdAt": "2026-04-07T11:08:17.373Z",
+      "role": "workflow:owner",
+      "workflowId": "WSdBKEWOOwwdGtLI",
+      "projectId": "wXHLPoE2QAiaFydx",
+      "project": {
+        "updatedAt": "2026-04-03T03:54:49.294Z",
+        "createdAt": "2026-04-03T03:52:25.019Z",
+        "id": "wXHLPoE2QAiaFydx",
+        "name": "Victor Camacho atendejasolucoesautomaticas@gmai <atendejasolucoesautomaticas@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "de829b13-1f7a-48b8-9368-4991adbd3084"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

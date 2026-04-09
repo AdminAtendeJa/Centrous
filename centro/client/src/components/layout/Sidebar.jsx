@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard, FileText, Workflow, BarChart2,
-    Users, FileCheck, Brain, Settings, Zap
+    Users, FileCheck, Brain, Settings, Zap, Inbox
 } from 'lucide-react';
 import styles from './Sidebar.module.css';
 
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
     {
         label: 'Principal', items: [
             { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+            { to: '/inbox', icon: Inbox, label: 'Bandeja Unificada' },
         ]
     },
     {
@@ -61,7 +62,7 @@ export default function Sidebar() {
                 <div className={styles.sidebarLogoIcon}>
                     <Zap size={16} />
                 </div>
-                <span className={styles.sidebarLogoText}>Centro<span> Pro</span></span>
+                <span className={styles.sidebarLogoText}>WorkHub<span> AI</span></span>
             </div>
 
             {/* Nav */}
