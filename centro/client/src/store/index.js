@@ -30,38 +30,56 @@ export const useSettingsStore = create(
     )
 );
 
-// ── CRM Store ────────────────────────────────────────────────────────────────
-const INITIAL_LEADS = [
-    { id: '1', name: 'Carlos Méndez', company: 'TechPymes SA', value: 1500, stage: 'new', channel: 'WhatsApp', notes: 'Interesado en automatización de facturación', createdAt: new Date().toISOString() },
-    { id: '2', name: 'Ana García', company: 'Retail Plus', value: 3200, stage: 'qualified', channel: 'Instagram', notes: 'Quiere integrar CRM con WhatsApp', createdAt: new Date().toISOString() },
-    { id: '3', name: 'Jorge Ruiz', company: 'LogiTrans', value: 800, stage: 'proposal', channel: 'LinkedIn', notes: 'Propuesta enviada el lunes', createdAt: new Date().toISOString() },
-    { id: '4', name: 'María Torres', company: 'ConsultMar', value: 2100, stage: 'closed_won', channel: 'Referido', notes: 'Cliente ganado ✅', createdAt: new Date().toISOString() },
-];
-
 export const useCRMStore = create(
     persist(
-        (set) => ({
-            leads: INITIAL_LEADS,
-            addLead: (lead) =>
-                set((s) => ({ leads: [{ ...lead, id: Date.now().toString(), createdAt: new Date().toISOString() }, ...s.leads] })),
-            updateLead: (id, data) =>
-                set((s) => ({ leads: s.leads.map((l) => (l.id === id ? { ...l, ...data } : l)) })),
-            deleteLead: (id) =>
-                set((s) => ({ leads: s.leads.filter((l) => l.id !== id) })),
-            moveLead: (id, stage) =>
-                set((s) => ({ leads: s.leads.map((l) => (l.id === id ? { ...l, stage } : l)) })),
+        (set, get) => ({
+            leads: [],
+            fetchLeads: async () => {
+                try {
+                    const res = await fetch('http://localhost:3001/api/crm/leads');
+                    const data = await res.json();
+                    if (data.success) set({ leads: data.leads });
+                } catch (err) { console.error(err); }
+            },
+            addLead: async (lead) => {
+                try {
+                    const res = await fetch('http://localhost:3001/api/crm/leads', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(lead)
+                    });
+                    const data = await res.json();
+                    if (data.success) get().fetchLeads();
+                } catch (err) { console.error(err); }
+            },
+            updateLead: async (id, payload) => {
+                try {
+                    await fetch(`http://localhost:3001/api/crm/leads/${id}`, {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    get().fetchLeads();
+                } catch (err) { console.error(err); }
+            },
+            deleteLead: async (id) => {
+                try {
+                    await fetch(`http://localhost:3001/api/crm/leads/${id}`, { method: 'DELETE' });
+                    set((s) => ({ leads: s.leads.filter((l) => l.id !== id) }));
+                } catch (err) { console.error(err); }
+            },
+            moveLead: async (id, stage) => {
+                try {
+                    // Update state optimistically immediately
+                    set((s) => ({ leads: s.leads.map((l) => (l.id === id ? { ...l, stage } : l)) }));
+                    await fetch(`http://localhost:3001/api/crm/leads/${id}`, {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ stage })
+                    });
+                } catch (err) { console.error(err); }
+            },
             addLeadMessage: (id, msg) =>
                 set((s) => ({
                     leads: s.leads.map((l) =>
-                        l.id === id
-                            ? {
-                                ...l,
-                                messages: [
-                                    ...(l.messages || []),
-                                    { ...msg, id: Date.now().toString(), time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) },
-                                ],
-                            }
-                            : l
+                        l.id === id ? { ...l, messages: [...(l.messages || []), { ...msg, id: Date.now().toString(), time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }] } : l
                     ),
                 })),
         }),
@@ -91,24 +109,46 @@ export const useProposalsStore = create(
     )
 );
 
-// ── Tasks Store (for Dashboard) ──────────────────────────────────────────────
-const INITIAL_TASKS = [
-    { id: '1', text: 'Revisar workflows de n8n', done: false, priority: 'high' },
-    { id: '2', text: 'Seguimiento a Jorge Ruiz', done: false, priority: 'high' },
-    { id: '3', text: 'Publicar post en LinkedIn', done: false, priority: 'medium' },
-    { id: '4', text: 'Actualizar propuesta LogiTrans', done: true, priority: 'low' },
-];
-
 export const useTasksStore = create(
     persist(
-        (set) => ({
-            tasks: INITIAL_TASKS,
-            addTask: (t) =>
-                set((s) => ({ tasks: [{ ...t, id: Date.now().toString(), done: false }, ...s.tasks] })),
-            toggleTask: (id) =>
-                set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) })),
-            deleteTask: (id) =>
-                set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) })),
+        (set, get) => ({
+            tasks: [],
+            fetchTasks: async () => {
+                try {
+                    const res = await fetch('http://localhost:3001/api/tasks');
+                    const data = await res.json();
+                    if (data.success) set({ tasks: data.tasks });
+                } catch (err) { console.error(err); }
+            },
+            addTask: async (t) => {
+                try {
+                    const res = await fetch('http://localhost:3001/api/tasks', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(t)
+                    });
+                    const data = await res.json();
+                    if (data.success) get().fetchTasks();
+                } catch (err) { console.error(err); }
+            },
+            toggleTask: async (id) => {
+                try {
+                    const task = get().tasks.find((t) => t.id === id);
+                    if (!task) return;
+
+                    set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) }));
+
+                    await fetch(`http://localhost:3001/api/tasks/${id}`, {
+                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ done: !task.done })
+                    });
+                } catch (err) { console.error(err); }
+            },
+            deleteTask: async (id) => {
+                try {
+                    await fetch(`http://localhost:3001/api/tasks/${id}`, { method: 'DELETE' });
+                    set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) }));
+                } catch (err) { console.error(err); }
+            },
         }),
         { name: 'centro-tasks' }
     )

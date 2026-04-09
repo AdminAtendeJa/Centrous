@@ -13,7 +13,7 @@ import Onboarding from './pages/Onboarding/Onboarding.jsx';
 import Inbox from './pages/Inbox/Inbox.jsx';
 import { useEffect } from 'react';
 import { io } from 'socket.io-client';
-import { useCRMStore, useUIStore, useOnboardingStore } from './store/index.js';
+import { useCRMStore, useUIStore, useOnboardingStore, useTasksStore } from './store/index.js';
 import Copilot from './components/ui/Copilot.jsx';
 
 // Conectar al backend (proxy bypass o directo al puerto del server Express)
@@ -73,6 +73,13 @@ function BodyScrollLock() {
 export default function App() {
     const isDrawerExpanded = useUIStore(s => s.isDrawerExpanded);
     const onboardingCompleted = useOnboardingStore(s => s.onboardingCompleted);
+
+    useEffect(() => {
+        if (onboardingCompleted) {
+            useCRMStore.getState().fetchLeads();
+            useTasksStore.getState().fetchTasks();
+        }
+    }, [onboardingCompleted]);
 
     return (
         <BrowserRouter>
