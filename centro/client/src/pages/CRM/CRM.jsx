@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { Plus, Trash2, Edit3, X, Check, MessageSquare, User, AtSign, Phone, Mail, Maximize, Minimize } from 'lucide-react';
 import { useCRMStore, useUIStore } from '../../store/index.js';
 
+import { KanbanBoard } from '../../components/crm/KanbanBoard.jsx';
+
 const STAGES = [
     { id: 'new', label: '🆕 Nuevo', color: 'var(--color-info)' },
     { id: 'qualified', label: '✅ Calificado', color: 'var(--color-primary-light)' },
@@ -12,64 +14,6 @@ const STAGES = [
 ];
 
 const CHANNELS = ['WhatsApp', 'Instagram', 'LinkedIn', 'Referido', 'Web', 'Email', 'Llamada'];
-
-function LeadCard({ lead, onClick, onDoubleClick, onDelete, onEdit, onMove }) {
-    const handleDragStart = (e) => {
-        e.dataTransfer.setData('leadId', lead.id);
-        e.dataTransfer.effectAllowed = 'move';
-    };
-
-    return (
-        <div
-            draggable={true}
-            onDragStart={handleDragStart}
-            onClick={() => onClick(lead)}
-            onDoubleClick={() => onDoubleClick(lead)}
-            style={{
-                background: 'var(--color-surface-2)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                padding: '12px 14px',
-                cursor: 'grab',
-                transition: 'transform 0.1s ease',
-            }}>
-            <div className="flex-between" style={{ marginBottom: 6 }}>
-                <div style={{ fontWeight: 600, fontSize: 13 }}>{lead.name}</div>
-                <div className="flex gap-2">
-                    <button className="btn-icon" style={{ padding: 3 }} onClick={(e) => { e.stopPropagation(); onEdit(lead); }}><Edit3 size={12} /></button>
-                    <button className="btn-icon" style={{ padding: 3 }} onClick={(e) => { e.stopPropagation(); onDelete(lead.id); }}><Trash2 size={12} /></button>
-                </div>
-            </div>
-            <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8 }}>{lead.company}</div>
-            <div className="flex-between">
-                <span className="badge badge-muted" style={{ fontSize: 10 }}>{lead.channel}</span>
-                {lead.value > 0 && (
-                    <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-success)' }}>
-                        ${lead.value?.toLocaleString()}
-                    </span>
-                )}
-            </div>
-            {lead.notes && (
-                <div style={{ marginTop: 8, fontSize: 11, color: 'var(--text-secondary)', borderTop: '1px solid var(--color-border)', paddingTop: 8, lineHeight: 1.5 }}>
-                    {lead.notes}
-                </div>
-            )}
-            {/* Move buttons */}
-            <div className="flex gap-1" style={{ marginTop: 10, flexWrap: 'wrap' }}>
-                {STAGES.filter((s) => s.id !== lead.stage).slice(0, 3).map((s) => (
-                    <button
-                        key={s.id}
-                        onClick={(e) => { e.stopPropagation(); onMove(lead.id, s.id); }}
-                        className="btn btn-ghost btn-sm"
-                        style={{ fontSize: 10, padding: '3px 8px' }}
-                    >
-                        → {s.label.split(' ')[1] || s.label}
-                    </button>
-                ))}
-            </div>
-        </div>
-    );
-}
 
 function LeadDrawer({ leadId, onClose, initialExpanded = false }) {
     const { leads, addLeadMessage, updateLead } = useCRMStore();
@@ -368,48 +312,16 @@ export default function CRM() {
                 </button>
             </div>
 
-            {/* Kanban Board */}
-            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${STAGES.length}, 1fr)`, gap: 14, overflowX: 'auto', minWidth: 0 }}>
-                {STAGES.map((stage) => {
-                    const stageLeads = leads.filter((l) => l.stage === stage.id);
-                    return (
-                        <div key={stage.id} style={{ minWidth: 200 }}>
-                            <div className="flex-between" style={{ marginBottom: 10, padding: '0 2px' }}>
-                                <span style={{ fontSize: 12, fontWeight: 700 }}>{stage.label}</span>
-                                <span style={{ background: 'var(--color-surface-3)', color: 'var(--text-muted)', borderRadius: 99, padding: '2px 8px', fontSize: 11, fontWeight: 700 }}>{stageLeads.length}</span>
-                            </div>
-                            <div
-                                onDragOver={(e) => e.preventDefault()}
-                                onDrop={(e) => {
-                                    const id = e.dataTransfer.getData('leadId');
-                                    moveLead(id, stage.id);
-                                }}
-                                style={{
-                                    background: 'rgba(255,255,255,0.02)',
-                                    borderRadius: 'var(--radius-md)',
-                                    border: '1px solid var(--color-border)',
-                                    padding: 8,
-                                    minHeight: 200,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: 8,
-                                }}>
-                                {stageLeads.map((lead) => (
-                                    <LeadCard
-                                        key={lead.id}
-                                        lead={lead}
-                                        onClick={(l) => openLead(l.id, false)}
-                                        onDoubleClick={(l) => openLead(l.id, true)}
-                                        onDelete={deleteLead}
-                                        onEdit={(l) => setEditingLead(l)}
-                                        onMove={moveLead}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+            {/* Kanban Board V3 */}
+            <KanbanBoard
+                stages={STAGES}
+                leads={leads}
+                onMoveLead={moveLead}
+                onLeadClick={(id, bool) => openLead(id, bool)}
+                onLeadDoubleClick={(id, bool) => openLead(id, bool)}
+                onDeleteLead={deleteLead}
+                onEditLead={(l) => setEditingLead(l)}
+            />
         </div>
     );
 }

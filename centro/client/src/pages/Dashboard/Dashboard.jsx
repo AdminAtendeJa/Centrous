@@ -5,7 +5,7 @@ import {
     Plus, CheckCircle2, Circle, Trash2,
     ArrowRight, Zap, AlertCircle
 } from 'lucide-react';
-import { useTasksStore, useCRMStore, useProposalsStore, useOnboardingStore } from '../../store/index.js';
+import { useTasksStore, useCRMStore, useProposalsStore, useOnboardingStore, useAIStore } from '../../store/index.js';
 import { useSettingsStore } from '../../store/index.js';
 
 const QUOTES = [
@@ -22,6 +22,7 @@ export default function Dashboard() {
     const { proposals } = useProposalsStore();
     const { settings } = useSettingsStore();
     const { profile } = useOnboardingStore();
+    const { latestScanResult } = useAIStore();
     const [newTask, setNewTask] = useState('');
     const [quote] = useState(() => QUOTES[Math.floor(Math.random() * QUOTES.length)]);
 
@@ -152,10 +153,16 @@ export default function Dashboard() {
                         </div>
                         <div style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--text-secondary)' }}>
                             {settings.aiApiKey ? (
-                                <>
-                                    Agente <strong>{settings.aiModel}</strong> activo.<br />
-                                    Próximo escaneo automático en 30 min.
-                                </>
+                                latestScanResult && latestScanResult.resumen ? (
+                                    <div style={{ padding: '8px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', marginTop: '4px' }}>
+                                        <p style={{ margin: 0, fontStyle: 'italic', color: 'var(--text)' }}>"{latestScanResult.resumen}"</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        Agente <strong>{settings.aiModel}</strong> activo.<br />
+                                        Analizando background en tiempo real...
+                                    </>
+                                )
                             ) : (
                                 "IA no configurada. Ve a Ajustes para activar el Copiloto."
                             )}

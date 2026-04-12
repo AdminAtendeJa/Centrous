@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Toaster } from 'react-hot-toast';
 import Sidebar from './components/layout/Sidebar.jsx';
 import ErrorBoundary from './components/ui/ErrorBoundary.jsx';
 import Dashboard from './pages/Dashboard/Dashboard.jsx';
@@ -8,6 +9,7 @@ import SocialMedia from './pages/SocialMedia/SocialMedia.jsx';
 import CRM from './pages/CRM/CRM.jsx';
 import Proposals from './pages/Proposals/Proposals.jsx';
 import Productivity from './pages/Productivity/Productivity.jsx';
+import Finance from './pages/Finance/Finance.jsx';
 import Settings from './pages/Settings/Settings.jsx';
 import Onboarding from './pages/Onboarding/Onboarding.jsx';
 import Inbox from './pages/Inbox/Inbox.jsx';
@@ -70,7 +72,22 @@ function BodyScrollLock() {
     return null;
 }
 
-export default function App() {
+function PageWrapper({ children }) {
+    return (
+        <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.02 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            style={{ width: '100%', height: '100%' }}
+        >
+            {children}
+        </motion.div>
+    );
+}
+
+function AnimatedRoutes() {
+    const location = useLocation();
     const isDrawerExpanded = useUIStore(s => s.isDrawerExpanded);
     const onboardingCompleted = useOnboardingStore(s => s.onboardingCompleted);
 
@@ -82,34 +99,54 @@ export default function App() {
     }, [onboardingCompleted]);
 
     return (
-        <BrowserRouter>
+        <AnimatePresence mode="wait">
             {!onboardingCompleted ? (
-                <Onboarding />
+                <Routes location={location} key="onboarding">
+                    <Route path="/onboarding" element={<Onboarding />} />
+                    <Route path="*" element={<Navigate to="/onboarding" replace />} />
+                </Routes>
             ) : (
-                <div className={`app-layout ${isDrawerExpanded ? 'drawer-expanded-view' : ''}`}>
+                <div key="app-layout" className={`app-layout ${isDrawerExpanded ? 'drawer-expanded-view' : ''}`}>
                     <SocketManager />
                     <BodyScrollLock />
                     <Copilot />
                     <Sidebar />
                     <main className="page-content">
-                        <ErrorBoundary>
-                            <Routes>
+                        <ErrorBoundary dropoff={true}>
+                            <Routes location={location} key={location.pathname}>
                                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                                <Route path="/dashboard" element={<Dashboard />} />
-                                <Route path="/notion" element={<NotionHub />} />
-                                <Route path="/n8n" element={<N8nMonitor />} />
-                                <Route path="/social" element={<SocialMedia />} />
-                                <Route path="/crm" element={<CRM />} />
-                                <Route path="/inbox" element={<Inbox />} />
-                                <Route path="/proposals" element={<Proposals />} />
-                                <Route path="/productivity" element={<Productivity />} />
-                                <Route path="/settings" element={<Settings />} />
+                                <Route path="/dashboard" element={<PageWrapper><Dashboard /></PageWrapper>} />
+                                <Route path="/notion" element={<PageWrapper><NotionHub /></PageWrapper>} />
+                                <Route path="/n8n" element={<PageWrapper><N8nMonitor /></PageWrapper>} />
+                                <Route path="/social" element={<PageWrapper><SocialMedia /></PageWrapper>} />
+                                <Route path="/crm" element={<PageWrapper><CRM /></PageWrapper>} />
+                                <Route path="/inbox" element={<PageWrapper><Inbox /></PageWrapper>} />
+                                <Route path="/proposals" element={<PageWrapper><Proposals /></PageWrapper>} />
+                                <Route path="/productivity" element={<PageWrapper><Productivity /></PageWrapper>} />
+                                <Route path="/finance" element={<PageWrapper><Finance /></PageWrapper>} />
+                                <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
                                 <Route path="*" element={<Navigate to="/dashboard" replace />} />
                             </Routes>
                         </ErrorBoundary>
                     </main>
                 </div>
             )}
+        </AnimatePresence>
+    );
+}
+
+export default function App() {
+    return (
+        <BrowserRouter>
+            <Toaster position="top-right" toastOptions={{
+                duration: 4000,
+                style: {
+                    background: 'var(--color-surface)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--color-border)',
+                },
+            }} />
+            <AnimatedRoutes />
         </BrowserRouter>
     );
 }

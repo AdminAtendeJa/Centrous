@@ -32,6 +32,7 @@ function ApiField({ label, field, placeholder, value, onChange, hint }) {
 export default function Settings() {
     const { settings, updateSettings } = useSettingsStore();
     const [form, setForm] = useState({ ...settings });
+    const [showQR, setShowQR] = useState(false);
 
     const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -132,7 +133,7 @@ export default function Settings() {
                                 onClick={() => {
                                     if (!form.googleClientId) return toast.error('Ingresa el Client ID primero');
                                     toast.success('Iniciando flujo OAuth 2.0...');
-                                    window.open(`http://localhost:3000/api/integrations/google/auth?clientId=${form.googleClientId}`, '_blank', 'width=500,height=600');
+                                    window.open(`http://localhost:3001/api/integrations/google/auth?clientId=${form.googleClientId}`, '_blank', 'width=500,height=600');
                                 }}
                             >
                                 <img src="https://www.google.com/favicon.ico" style={{ width: 16 }} />
@@ -164,13 +165,33 @@ export default function Settings() {
                                 style={{ background: '#1877F2', color: '#fff', border: 'none', padding: '10px 14px', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: 'pointer', marginTop: 10 }}
                                 onClick={() => {
                                     if (!form.metaAppId) return toast.error('Ingresa el App ID de Meta primero');
-                                    window.open(`http://localhost:3000/api/integrations/meta/auth?appId=${form.metaAppId}`, '_blank', 'width=500,height=600');
+                                    window.open(`http://localhost:3001/api/integrations/meta/auth?appId=${form.metaAppId}`, '_blank', 'width=500,height=600');
                                 }}
                             >
                                 <span style={{ fontWeight: 600, fontSize: 13 }}>Vincular con Facebook / Meta</span>
                             </button>
                         </>
                     )}
+                </div>
+
+                {/* WhatsApp */}
+                <div className="card">
+                    <div className="flex-between" style={{ marginBottom: 8 }}>
+                        <h2 style={{ fontSize: 15, fontWeight: 700 }}>💬 WhatsApp</h2>
+                        <span className="badge badge-muted">
+                            Desconectado
+                        </span>
+                    </div>
+                    <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
+                        Escanea el código QR para vincular tu número de ventas directamente a WorkHub usando Evolution API.
+                    </p>
+                    <button
+                        className="btn"
+                        style={{ background: '#25D366', color: '#fff', border: 'none', padding: '10px 14px', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: 'pointer' }}
+                        onClick={() => setShowQR(true)}
+                    >
+                        <span style={{ fontWeight: 600, fontSize: 13 }}>Vincular WhatsApp (Generar QR)</span>
+                    </button>
                 </div>
             </div>
 
@@ -179,6 +200,30 @@ export default function Settings() {
                     <Save size={16} /> Guardar Cambios
                 </button>
             </div>
+
+            {/* QR Webhook Modal */}
+            {showQR && (
+                <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)' }} onClick={() => setShowQR(false)}>
+                    <div className="animate-in" style={{ width: 340, background: 'var(--color-surface)', borderRadius: 16, padding: '30px 24px', textAlign: 'center', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-xl)' }} onClick={e => e.stopPropagation()}>
+                        <h3 style={{ marginBottom: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                            <span style={{ color: '#25D366' }}>●</span> Escanea con WhatsApp
+                        </h3>
+                        <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 24 }}>Abre WhatsApp en tu teléfono, ve a "Dispositivos Vinculados" y escanea este código para conectar.</p>
+
+                        <div style={{ background: '#fff', padding: 20, borderRadius: 12, marginBottom: 24, display: 'inline-block' }}>
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=WorkHubEvolutionAPIDemo123&margin=0" alt="QR Code" style={{ width: 180, height: 180, display: 'block' }} />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+                            <button className="btn btn-ghost" onClick={() => setShowQR(false)}>Cerrar</button>
+                            <button className="btn btn-primary" onClick={() => {
+                                toast.success('¡WhatsApp conectado artificialmente para la demo!');
+                                setShowQR(false);
+                            }}>Simular Escaneo Exitoso</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

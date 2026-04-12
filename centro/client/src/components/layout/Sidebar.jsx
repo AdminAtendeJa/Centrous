@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard, FileText, Workflow, BarChart2,
-    Users, FileCheck, Brain, Settings, Zap, Inbox
+    Users, FileCheck, Brain, Settings, Zap, Inbox, DollarSign
 } from 'lucide-react';
 import styles from './Sidebar.module.css';
 
@@ -11,6 +11,7 @@ const NAV_ITEMS = [
         label: 'Principal', items: [
             { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
             { to: '/inbox', icon: Inbox, label: 'Bandeja Unificada' },
+            { to: '/finance', icon: DollarSign, label: 'Finanzas' },
         ]
     },
     {

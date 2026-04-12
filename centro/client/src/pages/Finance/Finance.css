@@ -1,0 +1,72 @@
+.finance-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Glassmorphic Chart Container */
+.chart-container {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.chart-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(124, 58, 237, 0.5), transparent);
+}
+
+.metric-card {
+    background: linear-gradient(135deg, var(--color-surface-2), var(--color-surface-3));
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.metric-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.metric-value {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.expense-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--color-surface-2);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    border: 1px solid transparent;
+    transition: border-color 0.2s;
+}
+
+.expense-row:hover {
+    border-color: var(--color-border);
+    background: var(--color-surface-3);
+}

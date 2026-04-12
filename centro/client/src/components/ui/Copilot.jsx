@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Bot, Sparkles, X, Activity, CheckCircle, FileText, MessageSquare, Copy, Briefcase } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { useSettingsStore, useCRMStore, useTasksStore, useNotesStore, useProposalsStore, useUIStore } from '../../store/index.js';
+import { useSettingsStore, useCRMStore, useTasksStore, useNotesStore, useProposalsStore, useUIStore, useAIStore } from '../../store/index.js';
 
 export default function Copilot() {
     const [open, setOpen] = useState(false);
@@ -20,6 +20,7 @@ export default function Copilot() {
     // Accedemos a las funciones de mutación de Zustand
     const addTask = useTasksStore(s => s.addTask);
     const addNote = useNotesStore ? useNotesStore(s => s.addNote) : () => console.log('NotesStore no detectado'); // Fallback si notesStore se llama distinto
+    const setLatestScanResult = useAIStore(s => s.setLatestScanResult);
 
     const handleAnalyze = async (silent = false) => {
         if (!settings.aiApiKey) {
@@ -75,6 +76,7 @@ Estructura JSON esperada:
 
             const data = res.data.data; // JSON parseado
             setResult(data);
+            setLatestScanResult(data);
 
             // AUTO AÑADIR DATOS
             if (data.tareasSugeridas?.length) {

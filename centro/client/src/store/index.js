@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { toast } from 'react-hot-toast';
 
 // ── Settings Store (API keys, prefs) ────────────────────────────────────────
 export const useSettingsStore = create(
@@ -58,13 +59,21 @@ export const useCRMStore = create(
                         body: JSON.stringify(payload)
                     });
                     get().fetchLeads();
-                } catch (err) { console.error(err); }
+                    toast.success('Lead actualizado');
+                } catch (err) {
+                    toast.error('Error al actualizar lead');
+                    console.error(err);
+                }
             },
             deleteLead: async (id) => {
                 try {
                     await fetch(`http://localhost:3001/api/crm/leads/${id}`, { method: 'DELETE' });
                     set((s) => ({ leads: s.leads.filter((l) => l.id !== id) }));
-                } catch (err) { console.error(err); }
+                    toast.success('Lead eliminado');
+                } catch (err) {
+                    toast.error('Error al eliminar lead');
+                    console.error(err);
+                }
             },
             moveLead: async (id, stage) => {
                 try {
@@ -74,7 +83,11 @@ export const useCRMStore = create(
                         method: 'PUT', headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ stage })
                     });
-                } catch (err) { console.error(err); }
+                    toast.success('Etapa actualizada');
+                } catch (err) {
+                    toast.error('Error al mover lead');
+                    console.error(err);
+                }
             },
             addLeadMessage: (id, msg) =>
                 set((s) => ({
@@ -196,3 +209,9 @@ export const useOnboardingStore = create(
         { name: 'centro-onboarding' }
     )
 );
+
+// ── AI State Store ───────────────────────────────────────────────────────────
+export const useAIStore = create((set) => ({
+    latestScanResult: null,
+    setLatestScanResult: (result) => set({ latestScanResult: result }),
+}));
