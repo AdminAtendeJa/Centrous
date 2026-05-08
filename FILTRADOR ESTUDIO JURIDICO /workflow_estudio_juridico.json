@@ -1,0 +1,1134 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "Demo Consulta Juridica",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -7744,
+        2992
+      ],
+      "id": "b9fb33e2-1968-4630-970e-3fa40ff108b6",
+      "name": "Webhook",
+      "webhookId": "be33116e-4877-47c3-adbe-3cf4f1f6da03"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "aoe-c1",
+              "leftValue": "={{ $json.body.data.messageType }}",
+              "rightValue": "audio",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -7472,
+        3648
+      ],
+      "id": "539d10fd-2f15-45c0-ad13-a214c5d2cdcb",
+      "name": "AUDIO O ESCRITO"
+    },
+    {
+      "parameters": {
+        "jsCode": "for (let item of $input.all()) {\n  let base64String = item.json.body?.data?.message?.base64 || item.json.message?.base64 || item.json.base64;\n  if (!base64String) throw new Error('No se encontró el audio.');\n  item.binary = { file: { data: base64String, mimeType: 'audio/ogg', fileName: 'audio.ogg' } };\n}\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -7248,
+        3568
+      ],
+      "id": "8129d956-0173-4744-905e-b0332881f927",
+      "name": "CONVERTIDOR A DATA"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "groqApi",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "whisper-large-v3"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "file"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -7024,
+        3568
+      ],
+      "id": "c0c620d5-1b5f-449e-b095-211eec6aeaae",
+      "name": "TRANSCRIPCION CON GROQ",
+      "credentials": {
+        "groqApi": {
+          "id": "ajcc5lsup6acbPrm",
+          "name": "Groq audio whisper"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const webhookData = $('Webhook').first().json;\nif (webhookData.body.event !== 'messages.upsert') return [];\nlet userMessage = '', phoneNumber = '', userName = 'Prospecto', isFromMe = false;\ntry {\n  const messageData = webhookData.body.data;\n  phoneNumber = (messageData.key.remoteJid || '').replace('@s.whatsapp.net', '');\n  userName = messageData.pushName || 'Prospecto';\n  isFromMe = messageData.key.fromMe || false;\n  if ($input.first().json.text) {\n    userMessage = $input.first().json.text;\n  } else {\n    const msg = messageData.message;\n    if (msg?.conversation) userMessage = msg.conversation;\n    else if (msg?.extendedTextMessage?.text) userMessage = msg.extendedTextMessage.text;\n  }\n} catch (e) { console.log('Error:', e); }\nconst fechaHoraHoy = new Date().toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });\nreturn { chatInput: userMessage, telefono: phoneNumber, nombreCliente: userName, isFromMe, fechaHoraHoy };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6800,
+        3648
+      ],
+      "id": "ddbec352-a4de-4f38-8be7-c534c53e561b",
+      "name": "PREPARADOR DE DATOS"
+    },
+    {
+      "parameters": {
+        "url": "=https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/leads?telefono=eq.{{ $json.telefono }}&select=*",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -6576,
+        3648
+      ],
+      "id": "743ed367-3f46-4729-8c47-137320e6a378",
+      "name": "SUPABASE GET PACIENTE",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "htg0D9rHTCZDLrWM",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const prep = $('PREPARADOR DE DATOS').first().json;\nlet dbData = {};\ntry {\n  const raw = $input.all();\n  if (raw.length > 0 && raw[0].json) {\n    const parsed = Array.isArray(raw[0].json) ? raw[0].json[0] : raw[0].json;\n    if (parsed && (parsed.telefono || parsed.nombre)) dbData = parsed;\n  }\n} catch (e) { dbData = {}; }\n\n// ── Estado activo (sesión de flujo en curso) ──\nlet estadoActivo = false;\nlet necesidadActual = null;\nif (dbData.estado_actual && dbData.ultima_actividad) {\n  const minutosTranscurridos = (new Date() - new Date(dbData.ultima_actividad)) / 60000;\n  if (minutosTranscurridos < 30) {\n    estadoActivo = true;\n    necesidadActual = dbData.estado_actual;\n  }\n}\n\n// ── Pausa por intervención del admin ──\nlet botPausado = false;\nif (dbData.is_pausada && dbData.ultima_pausa) {\n  const minDesdeAdmin = (new Date() - new Date(dbData.ultima_pausa)) / 60000;\n  botPausado = minDesdeAdmin < 30;\n}\n\nreturn {\n  estadoActivo,\n  necesidad: necesidadActual,\n  esNuevoPaciente: !dbData.nombre,\n  is_pausada: dbData.is_pausada || false,\n  botPausado,\n  chatInput: prep.chatInput || '',\n  telefono: prep.telefono,\n  nombreWhatsApp: prep.nombreCliente || 'Prospecto',\n  fechaHoraHoy: prep.fechaHoraHoy,\n  paciente_id: dbData.id || null,\n  nombreEnDB: dbData.nombre || prep.nombreCliente || '',\n  faseConsulta: dbData.fase_consulta || 'Sin consulta previa',\n  email: dbData.email || '',\n  notasLead: dbData.notas || '',\n  calendarId: dbData.calendar_id || ''\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -6352,
+        3648
+      ],
+      "id": "ed8e80ce-c45a-4b0e-9ca0-e4edeedf439d",
+      "name": "GESTOR DE ESTADO"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ifn-c1",
+              "leftValue": "={{ $json.estadoActivo }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -5904,
+        3648
+      ],
+      "id": "f65f69fd-f62d-4c52-9bb0-8ab5cfb40fe8",
+      "name": "IF ESTADO ACTIVO"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/leads?on_conflict=telefono",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"telefono\": \"{{ $('GESTOR DE ESTADO').first().json.telefono }}\",\n  \"ultima_actividad\": \"{{ $now.toISO() }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -5232,
+        3552
+      ],
+      "id": "744d1c92-504a-4cd1-95cf-eae5e363d779",
+      "name": "SUPABASE TOUCH ACTIVIDAD",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "htg0D9rHTCZDLrWM",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "groqApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.3-70b-versatile\",\n  \"temperature\": 0,\n  \"response_format\": {\n    \"type\": \"json_object\"\n  },\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Eres el clasificador de un estudio jurídico. Devuelve únicamente JSON.\\n\\n1. SALUDO O GENÉRICO -> CONSULTAR\\n2. CASO LEGAL -> CONSULTAR\\n3. INFO: Solo dirección/horarios sin caso legal.\\n4. NO_CALIFICA: Spam.\\n\\nFormato: {\\\"intencion\\\": \\\"CONSULTAR|INFO|NO_CALIFICA\\\", \\\"es_urgente\\\": true/false, \\\"area_estimada\\\": \\\"laboral|transito|desconocida\\\", \\\"resumen\\\": \\\"max 8 palabras\\\"}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.chatInput) }}\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -5680,
+        3744
+      ],
+      "id": "ac8d6346-aaee-4b95-b30d-75367cdcb2d0",
+      "name": "CLASIFICADOR DE NECESIDAD",
+      "credentials": {
+        "groqApi": {
+          "id": "ajcc5lsup6acbPrm",
+          "name": "Groq audio whisper"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawContent = $input.first().json.choices[0].message.content;\nlet clasificacion;\ntry {\n  clasificacion = JSON.parse(rawContent);\n} catch(e) {\n  clasificacion = { intencion: 'CONSULTAR', es_urgente: false, area_estimada: 'desconocida', resumen: 'No clasificado' };\n}\n\n// ── OVERRIDE DE SEGURIDAD: saludos y msgs cortos → siempre CONSULTAR ──────\nconst msg = ($('GESTOR DE ESTADO').first().json.chatInput || '').trim().toLowerCase();\nconst SALUDOS = ['hola', 'buenas', 'buenos', 'buen dia', 'good morning', 'hi', 'hello',\n                 'hey', 'saludos', 'buenas!', 'hola!', 'ola', 'ke tal', 'qué tal'];\nconst esCortoOSaludo = msg.length <= 25 ||\n  SALUDOS.some(g => msg === g || msg.startsWith(g + ' ') || msg.startsWith(g + '!'));\n\nif (esCortoOSaludo && clasificacion.intencion === 'NO_CALIFICA') {\n  clasificacion.intencion = 'CONSULTAR';\n  clasificacion.resumen = 'Saludo inicial';\n}\n\nconst ges = $('GESTOR DE ESTADO').first().json;\nreturn {\n  necesidad: clasificacion.intencion || 'CONSULTAR',\n  urgencia: clasificacion.es_urgente || false,\n  area: clasificacion.area_estimada || 'desconocida',\n  resumenNecesidad: clasificacion.resumen || '',\n  esReclasificado: true,\n  chatInput: ges.chatInput,\n  telefono: ges.telefono,\n  nombreCliente: ges.nombreWhatsApp,\n  fechaHoraHoy: ges.fechaHoraHoy,\n  esNuevoPaciente: ges.esNuevoPaciente,\n  nombreEnDB: ges.nombreEnDB,\n  faseConsulta: ges.faseConsulta || 'Sin consulta previa',\n  calendarId: ges.calendarId,\n  datosParciales: {}\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5456,
+        3744
+      ],
+      "id": "455c0523-c87e-4309-8771-bed4a9fe0c56",
+      "name": "PARSER CLASIFICADOR"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/leads?on_conflict=telefono",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"telefono\": \"{{ $json.telefono }}\",\n  \"nombre\": \"{{ $json.nombreEnDB || $json.nombreCliente }}\",\n  \"estado_actual\": \"{{ $json.necesidad }}\",\n  \"ultima_actividad\": \"{{ $now.toISO() }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -5232,
+        3744
+      ],
+      "id": "551442e7-e59f-4b7c-9b9b-90dd40564d83",
+      "name": "SUPABASE SET ESTADO",
+      "credentials": {
+        "supabaseApi": {
+          "id": "htg0D9rHTCZDLrWM",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const ges = $('GESTOR DE ESTADO').first().json;\n\nconst base = {\n  chatInput: ges.chatInput,\n  telefono: ges.telefono,\n  nombreCliente: ges.nombreWhatsApp || ges.nombreEnDB || 'Prospecto',\n  fechaHoraHoy: ges.fechaHoraHoy,\n  esNuevoPaciente: ges.esNuevoPaciente,\n  nombreEnDB: ges.nombreEnDB,\n  faseConsulta: ges.faseConsulta || 'Sin consulta previa',\n  calendarId: ges.calendarId || '',\n  datosParciales: {}\n};\n\nlet necesidadFinal, urgenciaFinal, resumenFinal;\n\nif (ges.estadoActivo === true) {\n  // ── SESIÓN ACTIVA: reclasifica el mensaje pero respeta el agente en curso ──\n  let nueva;\n  try {\n    nueva = $('PARSER CLASIFICADOR1').first().json;\n  } catch(e) {\n    nueva = { necesidad: ges.necesidad || 'CONSULTAR', urgencia: false, resumenNecesidad: '' };\n  }\n\n  // Solo cambia de agente si el usuario pide explícitamente otra acción\n  const CAMBIOS_EXPLICITOS = ['AGENDAR', 'REAGENDAR', 'CANCELAR'];\n  const cambioExplicito = CAMBIOS_EXPLICITOS.includes(nueva.necesidad) &&\n                          nueva.necesidad !== ges.necesidad;\n\n  necesidadFinal  = cambioExplicito ? nueva.necesidad  : (ges.necesidad || 'CONSULTAR');\n  urgenciaFinal   = nueva.urgencia  || false;\n  resumenFinal    = nueva.resumenNecesidad || '';\n\n} else {\n  // ── SESIÓN NUEVA: usar clasificación fresca del mensaje ──\n  let nueva;\n  try {\n    nueva = $('PARSER CLASIFICADOR').first().json;\n  } catch(e) {\n    nueva = { necesidad: 'CONSULTAR', urgencia: false, resumenNecesidad: '' };\n  }\n  necesidadFinal = nueva.necesidad  || 'CONSULTAR';\n  urgenciaFinal  = nueva.urgencia   || false;\n  resumenFinal   = nueva.resumenNecesidad || '';\n}\n\nreturn {\n  ...base,\n  necesidad:        necesidadFinal,\n  urgencia:         urgenciaFinal,\n  resumenNecesidad: resumenFinal,\n  estadoPrevio:     ges.estadoActivo ? ges.necesidad : null\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5008,
+        3648
+      ],
+      "id": "274164e6-6559-413f-a09e-a47d30419fdc",
+      "name": "NORMALIZAR CONTEXTO"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "r1",
+                    "leftValue": "={{ $json.necesidad }}",
+                    "rightValue": "CONSULTAR",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "r2",
+                    "leftValue": "={{ $json.necesidad }}",
+                    "rightValue": "NO_CALIFICA",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -4784,
+        3632
+      ],
+      "id": "66e1e727-621a-4075-a4f9-f2e46de51f42",
+      "name": "ROUTER DE NECESIDAD"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=Sos la coordinadora de admisión del Estudio Jurídico [NOMBRE DEL ESTUDIO].\nFecha y hora actual: {{ $json.fechaHoraHoy }}\nInterlocutor: {{ $json.nombreCliente }} | Tel: {{ $json.telefono }}\n\n━━ OBJETIVO ━━\nTu rol es calificar al prospecto siguiendo EXACTAMENTE la misma estructura de calificación que usamos en nuestro formulario. Debes hacer las preguntas paso a paso, una a la vez o de a un par, de forma conversacional.\n\n━━ INFORMACIÓN A RELEVAR (Paso a paso) ━━\n1. TIPO DE ACCIDENTE: ¿Qué tipo de accidente tuviste? (Accidente de tránsito o Accidente laboral/ART)\n2. LESIONES: ¿Tuviste lesiones? (Sí / No) - Esta es LA MÁS IMPORTANTE.\n3. FECHA: ¿Cuándo fue el accidente? (Menos de 1 mes / Entre 1 y 6 meses / Más de 6 meses)\n4. SITUACIÓN ACTUAL: ¿En qué estado está tu caso? (No inicié nada / El seguro o ART no responde / Me ofrecieron poco dinero / Estoy en tratamiento)\n5. TRATAMIENTO: ¿Estás en tratamiento médico actualmente? (Sí / No)\n6. CONTACTO: Pedir Nombre completo y Email (Opcional, el teléfono ya lo tenemos).\n\n━━ USO DE LA HERRAMIENTA ━━\nUna vez que cuentes con toda la información, DEBES LLAMAR A LA HERRAMIENTA `GuardarProspectoLeads` para enviar la ficha a la base de datos. Completa todos sus parámetros obligatorios con las opciones seleccionadas.\n\n━━ DESPEDIDA OBLIGATORIA ━━\nTras usar la herramienta con éxito, despídete del cliente copiando exactamente este texto:\n\"Gracias, en breve te contactamos para evaluar tu caso. Si querés avanzar más rápido, podés escribirnos directamente por WhatsApp.\"\nCRÍTICO: Al final de esa despedida, tienes que escribir la etiqueta secreta |||NEW_LEAD||| para que el sistema le avise a tu administrador.\n\n━━ NORMAS ━━\n- Tono empático, al hueso.\n- No muestres código JSON ni hables de la herramienta al usuario.\n- Nunca brindes asesoramiento legal, solo recaba datos."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -4512,
+        3392
+      ],
+      "id": "c0d9be94-2600-4355-9598-8836bd299405",
+      "name": "AGENTE CONSULTAR"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=Usted habla con la asistente informativa del Estudio Jurídico [NOMBRE DEL ESTUDIO], especializado en reclamaciones por accidentes laborales y accidentes de tránsito.\nFecha y hora actual: {{ $json.fechaHoraHoy }}\n\n━━ ÁREAS DE PRÁCTICA ━━\n⚖️ Accidentes laborales — Reclamaciones ante la ART, incapacidades, accidentes in itinere, enfermedades profesionales e indemnizaciones civiles al empleador.\n⚖️ Accidentes de tránsito — Daños personales, daño moral, daño material, demandas civiles contra aseguradoras y terceros responsables.\n\n━━ INFORMACIÓN GENERAL ━━\n🕐 Horario de atención: Lunes a viernes, 9:00 a 18:00 hs\n📍 Dirección: [COMPLETAR con dirección real]\n📞 Consulta inicial: Sin costo\n💬 Honorarios: A convenir según el caso (en general se trabaja a porcentaje del resultado exitoso)\n\n━━ NORMAS ESTRICTAS ━━\n- Respondé ÚNICAMENTE preguntas sobre áreas de práctica, honorarios, horarios y ubicación\n- Si el interlocutor quiere consultar su caso, respondé: \"Para que nuestros abogados evalúen su situación, coméntenos brevemente qué ocurrió y le responderemos a la brevedad 😊\"\n- NUNCA brindes asesoramiento legal ni estimaciones de resultados\n- Mensajes de 1 a 3 líneas, claros y cordiales"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -4096,
+        3584
+      ],
+      "id": "8e59f567-73f7-4170-8116-0a43bae8f398",
+      "name": "AGENTE INFO"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -4560,
+        3616
+      ],
+      "id": "7143f0f3-6f76-4273-8c53-0012535b6c5e",
+      "name": "Groq Urgencia",
+      "credentials": {
+        "groqApi": {
+          "id": "ajcc5lsup6acbPrm",
+          "name": "Groq audio whisper"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -4096,
+        3808
+      ],
+      "id": "466a97db-16fc-46d6-af9f-8ea788e4679a",
+      "name": "Groq Info",
+      "credentials": {
+        "groqApi": {
+          "id": "ajcc5lsup6acbPrm",
+          "name": "Groq audio whisper"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('PREPARADOR DE DATOS').first().json.telefono }}",
+        "contextWindowLength": 12
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -4432,
+        3616
+      ],
+      "id": "dba153f9-92be-434b-8801-cd4419f1cb7d",
+      "name": "Memoria Urgencia"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('PREPARADOR DE DATOS').first().json.telefono }}",
+        "contextWindowLength": 12
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -3968,
+        3808
+      ],
+      "id": "bc2546f2-0721-438a-a696-db954e0b1ba0",
+      "name": "Memoria Info"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/leads?on_conflict=telefono",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"telefono\": \"{{ $json.telefono }}\",\n  \"nombre\": \"{{ $json.nombre }}\",\n  \"motivo\": \"{{ $json.motivo }}\",\n  \"preferencia\": \"{{ $json.preferencia }}\",\n  \"edad\": \"{{ $json.edad }}\",\n  \"calendar_id\": \"{{ $json.calendarEventId }}\",\n  \"estado_actual\": \"\"\"\",\n  \"ultima_actividad\": \"{{ $now.toISO() }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -4032,
+        4176
+      ],
+      "id": "eeceda40-278b-4571-a28d-47e50c58c268",
+      "name": "SUPABASE UPSERT PACIENTE",
+      "credentials": {
+        "supabaseApi": {
+          "id": "htg0D9rHTCZDLrWM",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "=AtendeJa",
+        "remoteJid": "={{ $('PREPARADOR DE DATOS').first().json.telefono }}",
+        "messageText": "={{ $json.output }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        -3744,
+        3888
+      ],
+      "id": "055c543c-55b0-45fa-bd14-ae99e3711597",
+      "name": "Enviar texto",
+      "credentials": {
+        "evolutionApi": {
+          "id": "dhZcAfk3MJMwaSHT",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "=AtendeJa",
+        "remoteJid": "554884553306",
+        "messageText": "=🆕 *Nuevo Lead*\nNombre: {{ $json.nombreEnDB || $json.nombreCliente }}\nTel: {{ $json.telefono }}\nIntención: {{ $json.necesidad }}\nÁrea: {{ $json.resumenNecesidad }}",
+        "options_message": {}
+      },
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        -3744,
+        3296
+      ],
+      "id": "282abde4-5692-4bc4-bad0-9801378d935a",
+      "name": "Notificar Nuevo Admin",
+      "credentials": {
+        "evolutionApi": {
+          "id": "dhZcAfk3MJMwaSHT",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "groqApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"llama-3.3-70b-versatile\",\n  \"temperature\": 0,\n  \"response_format\": {\n    \"type\": \"json_object\"\n  },\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Eres el clasificador de un estudio jurídico. Devuelve únicamente JSON.\\n\\n1. SALUDO O GENÉRICO -> CONSULTAR\\n2. CASO LEGAL -> CONSULTAR\\n3. INFO: Solo dirección/horarios sin caso legal.\\n4. NO_CALIFICA: Spam.\\n\\nFormato: {\\\"intencion\\\": \\\"CONSULTAR|INFO|NO_CALIFICA\\\", \\\"es_urgente\\\": true/false, \\\"area_estimada\\\": \\\"laboral|transito|desconocida\\\", \\\"resumen\\\": \\\"max 8 palabras\\\"}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.chatInput) }}\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -5680,
+        3552
+      ],
+      "id": "bd67c0aa-2ca0-4ed0-951c-ade2084e7374",
+      "name": "CLASIFICADOR DE NECESIDAD1",
+      "credentials": {
+        "groqApi": {
+          "id": "ajcc5lsup6acbPrm",
+          "name": "Groq audio whisper"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rawContent = $input.first().json.choices[0].message.content;\nlet clasificacion;\ntry {\n  clasificacion = JSON.parse(rawContent);\n} catch(e) {\n  clasificacion = { intencion: 'CONSULTAR', es_urgente: false, area_estimada: 'desconocida', resumen: 'No clasificado' };\n}\n\n// ── OVERRIDE DE SEGURIDAD: saludos y msgs cortos → siempre CONSULTAR ──────\nconst msg = ($('GESTOR DE ESTADO').first().json.chatInput || '').trim().toLowerCase();\nconst SALUDOS = ['hola', 'buenas', 'buenos', 'buen dia', 'good morning', 'hi', 'hello',\n                 'hey', 'saludos', 'buenas!', 'hola!', 'ola', 'ke tal', 'qué tal'];\nconst esCortoOSaludo = msg.length <= 25 ||\n  SALUDOS.some(g => msg === g || msg.startsWith(g + ' ') || msg.startsWith(g + '!'));\n\nif (esCortoOSaludo && clasificacion.intencion === 'NO_CALIFICA') {\n  clasificacion.intencion = 'CONSULTAR';\n  clasificacion.resumen = 'Saludo inicial';\n}\n\nconst ges = $('GESTOR DE ESTADO').first().json;\nreturn {\n  necesidad: clasificacion.intencion || 'CONSULTAR',\n  urgencia: clasificacion.es_urgente || false,\n  area: clasificacion.area_estimada || 'desconocida',\n  resumenNecesidad: clasificacion.resumen || '',\n  esReclasificado: true,\n  chatInput: ges.chatInput,\n  telefono: ges.telefono,\n  nombreCliente: ges.nombreWhatsApp,\n  fechaHoraHoy: ges.fechaHoraHoy,\n  esNuevoPaciente: ges.esNuevoPaciente,\n  nombreEnDB: ges.nombreEnDB,\n  faseConsulta: ges.faseConsulta || 'Sin consulta previa',\n  calendarId: ges.calendarId,\n  datosParciales: {}\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -5456,
+        3552
+      ],
+      "id": "846cd3b2-4ff2-4569-9af6-9f6c63e0853b",
+      "name": "PARSER CLASIFICADOR1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const telefono = $('PREPARADOR DE DATOS').first().json.telefono;\nreturn {\n  output: 'Gracias por comunicarse con nosotros. Por el momento no contamos con servicios relacionados con su consulta. Si en el futuro necesita asesoramiento en materia de accidentes laborales o de tránsito, estaremos a su disposición. ¡Que tenga un buen día! 😊',\n  telefono\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4032,
+        3984
+      ],
+      "id": "a62a0b6d-b981-430e-a858-b5aab1dec35e",
+      "name": "AGENTE NO CALIFICA"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrae teléfono del admin desde el webhook (antes de PREPARADOR DE DATOS)\nconst data = $('Webhook').first().json;\nconst remoteJid = data.body?.data?.key?.remoteJid || '';\nconst telefono = remoteJid.replace('@s.whatsapp.net', '');\nreturn { telefono };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -7472,
+        3376
+      ],
+      "id": "2295b644-5f30-4324-a11f-b9a0de8faf28",
+      "name": "EXTRAER TELEFONO ADMIN"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/leads?on_conflict=telefono",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=minimal"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"telefono\": \"{{ $json.telefono }}\",\n  \"is_pausada\": \"{{true}}\",\n  \"ultima_pausa\": \"{{ $now.toISO() }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -7248,
+        3376
+      ],
+      "id": "1dbe5651-7fef-4a69-afa0-31d4075c4352",
+      "name": "SUPABASE SET PAUSA",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "htg0D9rHTCZDLrWM",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ifp-c1",
+              "leftValue": "={{ $json.botPausado }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -6128,
+        3648
+      ],
+      "id": "ec8d893f-49f5-4e93-b94c-13e323261cb6",
+      "name": "IF BOT PAUSADO"
+    },
+    {
+      "parameters": {
+        "name": "GuardarProspectoLeads",
+        "description": "Guarda la calificación final del prospecto. CALL UNA SOLA VEZ AL TERMINAR LA CALIFICACIÓN.",
+        "jsCode": "\nconst { \n  tipo_accidente, \n  lesiones, \n  fecha_accidente, \n  situacion, \n  tratamiento, \n  nombre, \n  email \n} = $input;\n\nconst ges = $('GESTOR DE ESTADO').first().json;\n\n// Empaquetar todo el formulario en el campo 'consulta' limpiamente para Supabase\nconst fichaFormateada = `🔴 Accidente: ${tipo_accidente}\n🤕 Lesiones: ${lesiones}\n📅 Fecha: ${fecha_accidente}\n📋 Situación: ${situacion}\n🏥 Tratamiento: ${tratamiento}`;\n\nconst body = {\n  telefono: ges.telefono,\n  nombre: nombre || 'Prospecto',\n  consulta: fichaFormateada,\n  area_legal: tipo_accidente.toLowerCase().includes('transito') ? 'transito' : 'laboral',\n  urgencia: lesiones.toLowerCase() === 'sí' || lesiones.toLowerCase() === 'si',\n  email: email || '',\n  calificacion: 'INTERESADO',\n  estado_actual: null,\n  ultima_actividad: new Date().toISOString()\n};\n\nconst options = {\n  method: 'POST',\n  uri: 'https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/leads?on_conflict=telefono',\n  json: true,\n  headers: {\n    'Content-Type': 'application/json',\n    'Prefer': 'resolution=merge-duplicates,return=minimal'\n  },\n  body: body\n};\n\ntry {\n  await this.helpers.requestWithAuthentication('supabaseApi', options);\n  return 'ÉXITO: Ficha guardada. Despídete usando las instrucciones del prompt con la etiqueta secreta.';\n} catch (error) {\n  return 'ERROR: ' + error.message;\n}\n",
+        "specifyInputSchema": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [
+        -4304,
+        3616
+      ],
+      "id": "1366c104-2cc6-42bd-872e-3a1445dead64",
+      "name": "GuardarProspectoLeads"
+    },
+    {
+      "parameters": {
+        "jsCode": "let msg = $json.output || \"\";\nlet newLead = false;\nif (msg.includes(\"|||NEW_LEAD|||\")) {\n  newLead = true;\n  msg = msg.replace(\"|||NEW_LEAD|||\", \"\").trim();\n}\n// Retornamos el payload original pero modificado\nreturn {\n  ...$json,\n  output: msg,\n  isNewLead: newLead\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4032,
+        3392
+      ],
+      "id": "3082a378-2be2-4deb-a1da-2e51a603abde",
+      "name": "Detector Lead"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "adm-c1",
+              "leftValue": "={{ $json.isFromMe }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -7696,
+        3552
+      ],
+      "id": "f8ff7090-30f4-4a5d-958a-ce02498d39b2",
+      "name": "No responde si admin1"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "No responde si admin1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AUDIO O ESCRITO": {
+      "main": [
+        [
+          {
+            "node": "CONVERTIDOR A DATA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "PREPARADOR DE DATOS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CONVERTIDOR A DATA": {
+      "main": [
+        [
+          {
+            "node": "TRANSCRIPCION CON GROQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TRANSCRIPCION CON GROQ": {
+      "main": [
+        [
+          {
+            "node": "PREPARADOR DE DATOS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PREPARADOR DE DATOS": {
+      "main": [
+        [
+          {
+            "node": "SUPABASE GET PACIENTE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SUPABASE GET PACIENTE": {
+      "main": [
+        [
+          {
+            "node": "GESTOR DE ESTADO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GESTOR DE ESTADO": {
+      "main": [
+        [
+          {
+            "node": "IF BOT PAUSADO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF ESTADO ACTIVO": {
+      "main": [
+        [
+          {
+            "node": "CLASIFICADOR DE NECESIDAD1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CLASIFICADOR DE NECESIDAD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SUPABASE TOUCH ACTIVIDAD": {
+      "main": [
+        [
+          {
+            "node": "NORMALIZAR CONTEXTO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CLASIFICADOR DE NECESIDAD": {
+      "main": [
+        [
+          {
+            "node": "PARSER CLASIFICADOR",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PARSER CLASIFICADOR": {
+      "main": [
+        [
+          {
+            "node": "SUPABASE SET ESTADO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SUPABASE SET ESTADO": {
+      "main": [
+        [
+          {
+            "node": "NORMALIZAR CONTEXTO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NORMALIZAR CONTEXTO": {
+      "main": [
+        [
+          {
+            "node": "ROUTER DE NECESIDAD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ROUTER DE NECESIDAD": {
+      "main": [
+        [
+          {
+            "node": "AGENTE CONSULTAR",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AGENTE NO CALIFICA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AGENTE INFO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AGENTE CONSULTAR": {
+      "main": [
+        [
+          {
+            "node": "Detector Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AGENTE INFO": {
+      "main": [
+        [
+          {
+            "node": "Enviar texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Urgencia": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AGENTE CONSULTAR",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Info": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AGENTE INFO",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memoria Urgencia": {
+      "ai_memory": [
+        [
+          {
+            "node": "AGENTE CONSULTAR",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memoria Info": {
+      "ai_memory": [
+        [
+          {
+            "node": "AGENTE INFO",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SUPABASE UPSERT PACIENTE": {
+      "main": [
+        [
+          {
+            "node": "Enviar texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CLASIFICADOR DE NECESIDAD1": {
+      "main": [
+        [
+          {
+            "node": "PARSER CLASIFICADOR1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PARSER CLASIFICADOR1": {
+      "main": [
+        [
+          {
+            "node": "SUPABASE TOUCH ACTIVIDAD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AGENTE NO CALIFICA": {
+      "main": [
+        [
+          {
+            "node": "Enviar texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "EXTRAER TELEFONO ADMIN": {
+      "main": [
+        [
+          {
+            "node": "SUPABASE SET PAUSA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF BOT PAUSADO": {
+      "main": [
+        [],
+        [
+          {
+            "node": "IF ESTADO ACTIVO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GuardarProspectoLeads": {
+      "ai_tool": [
+        [
+          {
+            "node": "AGENTE CONSULTAR",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Detector Lead": {
+      "main": [
+        [
+          {
+            "node": "Notificar Nuevo Admin",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Enviar texto",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "No responde si admin1": {
+      "main": [
+        [
+          {
+            "node": "EXTRAER TELEFONO ADMIN",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AUDIO O ESCRITO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "9c2e862245265371e8a9640572ad2c99a3a34e06ee10cdda87475dfa7a5f0d20"
+  }
+}

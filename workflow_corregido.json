@@ -1,0 +1,1683 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "triggerAtHour": 11
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                -3120,
+                1184
+            ],
+            "id": "504a834c-03f2-48c9-9310-4c6e90702899",
+            "name": "Todos los días 11:00 AM"
+        },
+        {
+            "parameters": {
+                "jsCode": "const t = new Date();\nt.setDate(t.getDate() + 1);\nconst y = t.getFullYear();\nconst m = String(t.getMonth() + 1).padStart(2, '0');\nconst d = String(t.getDate()).padStart(2, '0');\nreturn { timeMin: `${y}-${m}-${d}T00:00:00Z`, timeMax: `${y}-${m}-${d}T23:59:59Z` };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -2896,
+                1184
+            ],
+            "id": "b8556f74-40d2-4ce2-a74b-7e56bd48a698",
+            "name": "Calcula Fechas Mañana"
+        },
+        {
+            "parameters": {
+                "operation": "getAll",
+                "calendar": {
+                    "__rl": true,
+                    "value": "atendejasolucoesautomaticas@gmail.com",
+                    "mode": "list",
+                    "cachedResultName": "atendejasolucoesautomaticas@gmail.com"
+                },
+                "options": {
+                    "timeMin": "={{ $json.timeMin }}",
+                    "timeMax": "={{ $json.timeMax }}"
+                }
+            },
+            "type": "n8n-nodes-base.googleCalendar",
+            "typeVersion": 1.1,
+            "position": [
+                -2672,
+                1184
+            ],
+            "id": "2d29ca22-b558-4150-87c7-ec492ac65963",
+            "name": "Turnos de mañana",
+            "credentials": {
+                "googleCalendarOAuth2Api": {
+                    "id": "eBmDZO4wagSdmdEM",
+                    "name": "Google Calendar account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "url": "=https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/pacientes?select=*",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "supabaseApi",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                -2448,
+                1184
+            ],
+            "id": "fa39becd-2d4a-4729-805f-eb87a0fe2730",
+            "name": "Traer Pacientes1",
+            "credentials": {
+                "supabaseApi": {
+                    "id": "htg0D9rHTCZDLrWM",
+                    "name": "Supabase account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const eventos = $('Turnos de mañana').all();\nconst pacientes = $input.first().json;\nlet mensajes = [];\nfor (const e of eventos) {\n  const summary = e.json.summary || '';\n  const p = pacientes.find(p => p.nombre && summary.toLowerCase().includes(p.nombre.toLowerCase()));\n  if (p && p.telefono) {\n    const hora = new Date(e.json.start.dateTime).toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'});\n    mensajes.push({ telefono: p.telefono, mensaje: `¡Hola ${p.nombre}! 🏥 Te escribimos de Schbelta Clinic para confirmar tu turno de mañana a las *${hora}*. ¿Podemos contar con tu asistencia? Por favor responde SÍ o REPROGRAMAR.` });\n  }\n}\nreturn mensajes;"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -2224,
+                1184
+            ],
+            "id": "5199cb62-e1c9-4368-8ac7-292ef67d86a5",
+            "name": "Cruzar Datos y Generar Mensaje"
+        },
+        {
+            "parameters": {
+                "resource": "messages-api",
+                "instanceName": "=AtendeJa",
+                "remoteJid": "={{ $json.telefono }}",
+                "messageText": "={{ $json.mensaje }}",
+                "options_message": {}
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                -2000,
+                1184
+            ],
+            "id": "c30c980f-fcc1-42f7-a62e-12ac53be7ec4",
+            "name": "Enviar a WhatsApp1",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "dhZcAfk3MJMwaSHT",
+                    "name": "Evolution account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "triggerAtHour": 18
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                -3120,
+                960
+            ],
+            "id": "88c70bbd-6122-49be-abec-281bff40aaac",
+            "name": "Todos los días 18:00 PM"
+        },
+        {
+            "parameters": {
+                "jsCode": "const t = new Date();\nt.setDate(t.getDate() - 1);\nconst y = t.getFullYear();\nconst m = String(t.getMonth() + 1).padStart(2, '0');\nconst d = String(t.getDate()).padStart(2, '0');\nreturn { timeMin: `${y}-${m}-${d}T00:00:00Z`, timeMax: `${y}-${m}-${d}T23:59:59Z` };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -2896,
+                960
+            ],
+            "id": "b65f5d8b-1478-40af-83ad-cdcc423f6c78",
+            "name": "Calcula Fechas de Ayer"
+        },
+        {
+            "parameters": {
+                "operation": "getAll",
+                "calendar": {
+                    "__rl": true,
+                    "value": "atendejasolucoesautomaticas@gmail.com",
+                    "mode": "list",
+                    "cachedResultName": "atendejasolucoesautomaticas@gmail.com"
+                },
+                "options": {
+                    "timeMin": "={{ $json.timeMin }}",
+                    "timeMax": "={{ $json.timeMax }}"
+                }
+            },
+            "type": "n8n-nodes-base.googleCalendar",
+            "typeVersion": 1.1,
+            "position": [
+                -2672,
+                960
+            ],
+            "id": "2f6487e7-1715-426f-8d50-beecb46267af",
+            "name": "Turnos de Ayer",
+            "credentials": {
+                "googleCalendarOAuth2Api": {
+                    "id": "eBmDZO4wagSdmdEM",
+                    "name": "Google Calendar account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "url": "=https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/pacientes?select=*",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "supabaseApi",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                -2448,
+                960
+            ],
+            "id": "08d53697-f172-4fff-89e3-0144929df403",
+            "name": "Traer Pacientes",
+            "credentials": {
+                "supabaseApi": {
+                    "id": "htg0D9rHTCZDLrWM",
+                    "name": "Supabase account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const eventos = $('Turnos de Ayer').all();\nconst pacientes = $input.first().json;\nlet mensajes = [];\nfor (const e of eventos) {\n  const summary = e.json.summary || '';\n  const isCirugia = /extracci|implante|cirug|endodoncia|tratamiento/i.test(summary);\n  if (!isCirugia) continue;\n  const p = pacientes.find(p => p.nombre && summary.toLowerCase().includes(p.nombre.toLowerCase()));\n  if (p && p.telefono) {\n    mensajes.push({ telefono: p.telefono, mensaje: `¡Hola ${p.nombre}! 🏥 Te contactamos del equipo de Schbelta Clinic. ¿Cómo te sentís hoy tras la intervención de ayer? Del 1 al 10, ¿cuánto dolor o molestia sentís?` });\n  }\n}\nreturn mensajes;"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -2224,
+                960
+            ],
+            "id": "879504fd-bca5-4665-bfc6-2a90929cb79b",
+            "name": "Filtrar Cirugias y Mensaje"
+        },
+        {
+            "parameters": {
+                "resource": "messages-api",
+                "instanceName": "=AtendeJa",
+                "remoteJid": "={{ $json.telefono }}",
+                "messageText": "={{ $json.mensaje }}",
+                "options_message": {}
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                -2000,
+                960
+            ],
+            "id": "404d7f63-6759-43c1-9ecf-23250aafb3ba",
+            "name": "Enviar a WhatsApp",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "dhZcAfk3MJMwaSHT",
+                    "name": "Evolution account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "Demo Consulta Medica",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2.1,
+            "position": [
+                -3120,
+                2768
+            ],
+            "id": "67894e92-f201-4f29-81f6-7f4844a7f1ba",
+            "name": "Webhook",
+            "webhookId": "be33116e-4877-47c3-adbe-3cf4f1f6da03"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "adm-c1",
+                            "leftValue": "={{ $json.isFromMe }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "boolean",
+                                "operation": "true",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                -2896,
+                2768
+            ],
+            "id": "d3a87ebe-5cce-4a84-ab69-8652b8b410bc",
+            "name": "No responde si admin"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "aoe-c1",
+                            "leftValue": "={{ $json.body.data.messageType }}",
+                            "rightValue": "audio",
+                            "operator": {
+                                "type": "string",
+                                "operation": "contains"
+                            }
+                        }
+                    ],
+                    "combinator": "or"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                -2672,
+                2768
+            ],
+            "id": "c387812e-5796-455b-be00-873a158dd3fe",
+            "name": "AUDIO O ESCRITO"
+        },
+        {
+            "parameters": {
+                "jsCode": "for (let item of $input.all()) {\n  let base64String = item.json.body?.data?.message?.base64 || item.json.message?.base64 || item.json.base64;\n  if (!base64String) throw new Error('❌ No se encontró el audio.');\n  item.binary = { file: { data: base64String, mimeType: 'audio/ogg', fileName: 'audio.ogg' } };\n}\nreturn $input.all();"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -2448,
+                2696
+            ],
+            "id": "b523c344-053c-4c9f-a51b-a07a2d818ac6",
+            "name": "CONVERTIDOR A DATA"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "groqApi",
+                "sendBody": true,
+                "contentType": "multipart-form-data",
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "model",
+                            "value": "whisper-large-v3"
+                        },
+                        {
+                            "parameterType": "formBinaryData",
+                            "name": "file",
+                            "inputDataFieldName": "file"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                -2224,
+                2696
+            ],
+            "id": "4f311f30-197c-4793-aded-5c4954f00723",
+            "name": "TRANSCRIPCION CON GROQ",
+            "credentials": {
+                "groqApi": {
+                    "id": "ajcc5lsup6acbPrm",
+                    "name": "Groq audio whisper"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const webhookData = $('Webhook').first().json;\nif (webhookData.body.event !== 'messages.upsert') return [];\nlet userMessage = '', phoneNumber = '', userName = 'Prospecto', isFromMe = false;\ntry {\n  const messageData = webhookData.body.data;\n  phoneNumber = (messageData.key.remoteJid || '').replace('@s.whatsapp.net', '');\n  userName = messageData.pushName || 'Prospecto';\n  isFromMe = messageData.key.fromMe || false;\n  if ($input.first().json.text) {\n    userMessage = $input.first().json.text;\n  } else {\n    const msg = messageData.message;\n    if (msg?.conversation) userMessage = msg.conversation;\n    else if (msg?.extendedTextMessage?.text) userMessage = msg.extendedTextMessage.text;\n  }\n} catch (e) { console.log('Error:', e); }\nconst fechaHoraHoy = new Date().toLocaleString('es-AR', { timeZone: 'America/Sao_Paulo', weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });\nreturn { chatInput: userMessage, telefono: phoneNumber, nombreCliente: userName, isFromMe, fechaHoraHoy };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -2000,
+                2768
+            ],
+            "id": "b7da2235-28ed-4e60-a0ae-e6c8c48e4e4f",
+            "name": "PREPARADOR DE DATOS"
+        },
+        {
+            "parameters": {
+                "url": "=https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/pacientes?telefono=eq.{{ $json.telefono }}&select=*",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "supabaseApi",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                -1776,
+                2768
+            ],
+            "id": "d1cc08b5-987f-466b-b989-5da7d60d622a",
+            "name": "SUPABASE GET PACIENTE",
+            "alwaysOutputData": true,
+            "credentials": {
+                "supabaseApi": {
+                    "id": "htg0D9rHTCZDLrWM",
+                    "name": "Supabase account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// ══════════════════════════════════════════\n// GESTOR DE ESTADO — FIX: Bucle INFO resuelto\n// ══════════════════════════════════════════\nconst prep = $('PREPARADOR DE DATOS').first().json;\n\nlet dbData = {};\ntry {\n  const raw = $input.all();\n  if (raw.length > 0 && raw[0].json) {\n    const parsed = Array.isArray(raw[0].json) ? raw[0].json[0] : raw[0].json;\n    if (parsed && (parsed.telefono || parsed.nombre)) dbData = parsed;\n  }\n} catch (e) { dbData = {}; }\n\nlet estadoActivo = false;\nlet necesidadActual = null;\n\nif (dbData.estado_actual && dbData.ultima_actividad) {\n  const minutosTranscurridos = (new Date() - new Date(dbData.ultima_actividad)) / 60000;\n  \n  // ✅ SOLUCIÓN AL BUCLE: Solo mantenemos el estado si es una transacción multi-paso\n  const esEstadoTransaccional = ['AGENDAR', 'REAGENDAR', 'CANCELAR'].includes(dbData.estado_actual);\n\n  if (minutosTranscurridos < 30 && esEstadoTransaccional) {\n    estadoActivo = true;\n    necesidadActual = dbData.estado_actual;\n  }\n}\n\nreturn {\n  estadoActivo,\n  necesidad: necesidadActual,\n  esNuevoPaciente: !dbData.nombre,\n  is_pausada: dbData.is_pausada || false,\n  chatInput: prep.chatInput || '',\n  telefono: prep.telefono,\n  nombreWhatsApp: prep.nombreCliente || 'Prospecto',\n  fechaHoraHoy: prep.fechaHoraHoy,\n  paciente_id: dbData.id || null,\n  nombreEnDB: dbData.nombre || prep.nombreCliente || '',\n  faseTratamiento: dbData.fase_tratamiento || 'Valoración',\n  email: dbData.email || '',\n  notasHistoricas: dbData.notas || '',\n  calendarId: dbData.calendar_id || ''\n};"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -1552,
+                2768
+            ],
+            "id": "30cdcdef-9e3a-4aab-b646-496f60cbdcfd",
+            "name": "GESTOR DE ESTADO"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "ifn-c1",
+                            "leftValue": "={{ $json.estadoActivo }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "boolean",
+                                "operation": "true",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                },
+                "options": {}
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                -1328,
+                2768
+            ],
+            "id": "d89f2618-682e-49e4-92ec-fc4ab3555e76",
+            "name": "IF ESTADO ACTIVO"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "=https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/pacientes?telefono=eq.{{ $('GESTOR DE ESTADO').first().json.telefono }}",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "supabaseApi",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Prefer",
+                            "value": "resolution=merge-duplicates,return=minimal"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "=[{ \"telefono\": \"{{ $('GESTOR DE ESTADO').first().json.telefono }}\", \"ultima_actividad\": \"{{ $now.toISO() }}\" }]",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                -656,
+                2032
+            ],
+            "id": "46d9cf8c-ab2d-4c67-b9d7-3d406c895827",
+            "name": "SUPABASE TOUCH ACTIVIDAD",
+            "credentials": {
+                "supabaseApi": {
+                    "id": "htg0D9rHTCZDLrWM",
+                    "name": "Supabase account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://api.groq.com/openai/v1/chat/completions",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "groqApi",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={\n  \"model\": \"llama-3.3-70b-versatile\",\n  \"temperature\": 0,\n  \"response_format\": { \"type\": \"json_object\" },\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Sos un clasificador de intenciones para una clínica de ortodoncia. Analizá el mensaje y respondé ÚNICAMENTE con JSON válido:\\n{\\\"necesidad\\\": \\\"URGENCIA|AGENDAR|REAGENDAR|CANCELAR|INFO\\\", \\\"urgencia\\\": true|false, \\\"resumen\\\": \\\"máx 8 palabras\\\"}\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.chatInput) }}\n    }\n  ]\n}",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                -1104,
+                2864
+            ],
+            "id": "312033ac-559f-4432-a52a-b04189a35c16",
+            "name": "CLASIFICADOR DE NECESIDAD",
+            "credentials": {
+                "groqApi": {
+                    "id": "ajcc5lsup6acbPrm",
+                    "name": "Groq audio whisper"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const rawContent = $input.first().json.choices[0].message.content;\nlet clasificacion;\ntry { clasificacion = JSON.parse(rawContent); } catch(e) { clasificacion = { necesidad: 'AGENDAR', urgencia: false, resumen: 'No clasificado' }; }\nconst ges = $('GESTOR DE ESTADO').first().json;\nreturn { necesidad: clasificacion.necesidad || 'AGENDAR', urgencia: clasificacion.urgencia || false, resumenNecesidad: clasificacion.resumen || '', estadoActivo: false, chatInput: ges.chatInput, telefono: ges.telefono, nombreCliente: ges.nombreWhatsApp, fechaHoraHoy: ges.fechaHoraHoy, esNuevoPaciente: ges.esNuevoPaciente, nombreEnDB: ges.nombreEnDB, tratamientoActual: ges.faseTratamiento, calendarId: ges.calendarId, datosParciales: {} };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -880,
+                2864
+            ],
+            "id": "dd67ee8c-7e45-4e84-82f4-092a410111c8",
+            "name": "PARSER CLASIFICADOR"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "=https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/pacientes?telefono=eq.{{ $json.telefono }}",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "supabaseApi",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Prefer",
+                            "value": "resolution=merge-duplicates,return=minimal"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "=[{ \"telefono\": \"{{ $json.telefono }}\", \"nombre\": \"{{ $json.nombreEnDB || $json.nombreCliente }}\", \"estado_actual\": \"{{ $json.necesidad }}\", \"ultima_actividad\": \"{{ $now.toISO() }}\" }]",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                -656,
+                2864
+            ],
+            "id": "1077152d-2ab0-46f3-ab85-8dfaa1748e33",
+            "name": "SUPABASE SET ESTADO",
+            "credentials": {
+                "supabaseApi": {
+                    "id": "htg0D9rHTCZDLrWM",
+                    "name": "Supabase account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const ges = $('GESTOR DE ESTADO').first().json;\nconst base = { chatInput: ges.chatInput, telefono: ges.telefono, nombreCliente: ges.nombreWhatsApp || ges.nombreEnDB || 'Prospecto', fechaHoraHoy: ges.fechaHoraHoy, esNuevoPaciente: ges.esNuevoPaciente, nombreEnDB: ges.nombreEnDB, tratamientoActual: ges.faseTratamiento || 'Sin registro', calendarId: ges.calendarId || '', datosParciales: {} };\nif (ges.estadoActivo === true) { return { ...base, necesidad: ges.necesidad, urgencia: false, resumenNecesidad: 'Continuando conversación anterior' }; }\nconst parser = $('PARSER CLASIFICADOR').first().json;\nreturn { ...base, necesidad: parser.necesidad || 'AGENDAR', urgencia: parser.urgencia || false, resumenNecesidad: parser.resumenNecesidad || '' };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                -432,
+                2080
+            ],
+            "id": "0d6df746-4a6c-4cf3-a8fa-f2dc26374761",
+            "name": "NORMALIZAR CONTEXTO"
+        },
+        {
+            "parameters": {
+                "rules": {
+                    "values": [
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "sw1",
+                                        "leftValue": "={{ $json.necesidad }}",
+                                        "rightValue": "URGENCIA",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            }
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "sw2",
+                                        "leftValue": "={{ $json.necesidad }}",
+                                        "rightValue": "AGENDAR",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            }
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "sw3",
+                                        "leftValue": "={{ $json.necesidad }}",
+                                        "rightValue": "REAGENDAR",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            }
+                        },
+                        {
+                            "conditions": {
+                                "options": {
+                                    "caseSensitive": true,
+                                    "leftValue": "",
+                                    "typeValidation": "strict",
+                                    "version": 2
+                                },
+                                "conditions": [
+                                    {
+                                        "id": "sw4",
+                                        "leftValue": "={{ $json.necesidad }}",
+                                        "rightValue": "CANCELAR",
+                                        "operator": {
+                                            "type": "string",
+                                            "operation": "equals"
+                                        }
+                                    }
+                                ],
+                                "combinator": "and"
+                            }
+                        }
+                    ]
+                },
+                "options": {
+                    "fallbackOutput": "extra"
+                }
+            },
+            "type": "n8n-nodes-base.switch",
+            "typeVersion": 3.2,
+            "position": [
+                -208,
+                2032
+            ],
+            "id": "38e720f3-6e13-4ade-9e9b-1864c9a5914f",
+            "name": "ROUTER DE NECESIDAD"
+        },
+        {
+            "parameters": {
+                "options": {
+                    "systemMessage": "=Sos la coordinadora de emergencias de Schbelta Clinic.\nFecha: {{ $json.fechaHoraHoy }}\nPaciente: {{ $json.nombreCliente }} | Tel: {{ $json.telefono }}"
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3.1,
+            "position": [
+                872,
+                1512
+            ],
+            "id": "5020e31a-2466-4321-a0e5-55c87801dd12",
+            "name": "AGENTE URGENCIA"
+        },
+        {
+            "parameters": {
+                "options": {
+                    "systemMessage": "=Sos la coordinadora de pacientes de Schbelta Clinic. Agendás citas.\nFecha actual: {{ $json.fechaHoraHoy }}\nPaciente: {{ $json.nombreCliente }} | Tel: {{ $json.telefono }}"
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3.1,
+            "position": [
+                16,
+                1904
+            ],
+            "id": "9f675fec-d529-456b-800b-1d923ac42e50",
+            "name": "AGENTE CONVERSACIONAL AGENDADO"
+        },
+        {
+            "parameters": {
+                "options": {
+                    "systemMessage": "=Sos la coordinadora de Schbelta Clinic. El paciente quiere REAGENDAR.\nFecha: {{ $json.fechaHoraHoy }}\nPaciente: {{ $json.nombreCliente }} | Tel: {{ $json.telefono }}"
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3.1,
+            "position": [
+                872,
+                2168
+            ],
+            "id": "50ad0627-9062-40f5-99d4-0449d703f980",
+            "name": "AGENTE REAGENDAR"
+        },
+        {
+            "parameters": {
+                "options": {
+                    "systemMessage": "=Sos la coordinadora de Schbelta Clinic. El paciente quiere CANCELAR.\nFecha: {{ $json.fechaHoraHoy }}\nPaciente: {{ $json.nombreCliente }} | Tel: {{ $json.telefono }}"
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3.1,
+            "position": [
+                872,
+                2568
+            ],
+            "id": "698b04cf-cc28-4f76-835d-11ee3c1eef12",
+            "name": "AGENTE CANCELAR"
+        },
+        {
+            "parameters": {
+                "options": {
+                    "systemMessage": "=Sos la asistente informativa de Schbelta Clinic.\nFecha: {{ $json.fechaHoraHoy }}"
+                }
+            },
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 3.1,
+            "position": [
+                872,
+                3072
+            ],
+            "id": "2cc34690-22d6-4d73-91e8-3478a805c6b6",
+            "name": "AGENTE INFO"
+        },
+        {
+            "parameters": {
+                "model": "llama-3.3-70b-versatile",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+            "typeVersion": 1,
+            "position": [
+                816,
+                1736
+            ],
+            "id": "8d17d7ba-08f2-4fb7-aba3-5224e7db8d99",
+            "name": "Groq Urgencia",
+            "credentials": {
+                "groqApi": {
+                    "id": "ajcc5lsup6acbPrm",
+                    "name": "Groq audio whisper"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "model": "llama-3.3-70b-versatile",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+            "typeVersion": 1,
+            "position": [
+                24,
+                2128
+            ],
+            "id": "db5c6ab0-33fb-4650-9146-434e8dc6dcbb",
+            "name": "Groq Agendado",
+            "credentials": {
+                "groqApi": {
+                    "id": "ajcc5lsup6acbPrm",
+                    "name": "Groq audio whisper"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "model": "llama-3.3-70b-versatile",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+            "typeVersion": 1,
+            "position": [
+                880,
+                2392
+            ],
+            "id": "59f6af70-ceca-4039-a923-04573d469f0e",
+            "name": "Groq Reagendar",
+            "credentials": {
+                "groqApi": {
+                    "id": "ajcc5lsup6acbPrm",
+                    "name": "Groq audio whisper"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "model": "llama-3.3-70b-versatile",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+            "typeVersion": 1,
+            "position": [
+                880,
+                2792
+            ],
+            "id": "d4da56fb-f8b4-44b0-921d-8368e03fa3d2",
+            "name": "Groq Cancelar",
+            "credentials": {
+                "groqApi": {
+                    "id": "ajcc5lsup6acbPrm",
+                    "name": "Groq audio whisper"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "model": "llama-3.3-70b-versatile",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+            "typeVersion": 1,
+            "position": [
+                880,
+                3296
+            ],
+            "id": "3d7a4657-28cf-409c-a573-7be08b9d7625",
+            "name": "Groq Info",
+            "credentials": {
+                "groqApi": {
+                    "id": "ajcc5lsup6acbPrm",
+                    "name": "Groq audio whisper"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "sessionIdType": "customKey",
+                "sessionKey": "={{ $('PREPARADOR DE DATOS').first().json.telefono }}",
+                "contextWindowLength": 12
+            },
+            "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+            "typeVersion": 1.3,
+            "position": [
+                944,
+                1736
+            ],
+            "id": "d87b8042-bb36-42c9-9459-4f969ac2774a",
+            "name": "Memoria Urgencia"
+        },
+        {
+            "parameters": {
+                "sessionIdType": "customKey",
+                "sessionKey": "={{ $('PREPARADOR DE DATOS').first().json.telefono }}",
+                "contextWindowLength": 12
+            },
+            "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+            "typeVersion": 1.3,
+            "position": [
+                152,
+                2128
+            ],
+            "id": "7e485698-c895-4e96-9ebd-4af7baa1f75e",
+            "name": "Memoria Agendado"
+        },
+        {
+            "parameters": {
+                "sessionIdType": "customKey",
+                "sessionKey": "={{ $('PREPARADOR DE DATOS').first().json.telefono }}",
+                "contextWindowLength": 12
+            },
+            "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+            "typeVersion": 1.3,
+            "position": [
+                1008,
+                2392
+            ],
+            "id": "891e57bd-660d-46f8-86b7-d4727e948bcb",
+            "name": "Memoria Reagendar"
+        },
+        {
+            "parameters": {
+                "sessionIdType": "customKey",
+                "sessionKey": "={{ $('PREPARADOR DE DATOS').first().json.telefono }}",
+                "contextWindowLength": 12
+            },
+            "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+            "typeVersion": 1.3,
+            "position": [
+                1008,
+                2792
+            ],
+            "id": "f22bbb5a-094d-48d8-8efd-a35cdaae670c",
+            "name": "Memoria Cancelar"
+        },
+        {
+            "parameters": {
+                "sessionIdType": "customKey",
+                "sessionKey": "={{ $('PREPARADOR DE DATOS').first().json.telefono }}",
+                "contextWindowLength": 12
+            },
+            "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+            "typeVersion": 1.3,
+            "position": [
+                1008,
+                3296
+            ],
+            "id": "96158462-2f27-4a7d-bdc3-3244125945ee",
+            "name": "Memoria Info"
+        },
+        {
+            "parameters": {
+                "calendar": {
+                    "__rl": true,
+                    "value": "atendejasolucoesautomaticas@gmail.com",
+                    "mode": "list",
+                    "cachedResultName": "atendejasolucoesautomaticas@gmail.com"
+                }
+            },
+            "type": "n8n-nodes-base.googleCalendarTool",
+            "typeVersion": 1.3,
+            "position": [
+                1072,
+                1736
+            ],
+            "id": "3718e921-c825-4d7c-915d-58d610ad30a3",
+            "name": "Google Calendar Tool",
+            "credentials": {
+                "googleCalendarOAuth2Api": {
+                    "id": "eBmDZO4wagSdmdEM",
+                    "name": "Google Calendar account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const agentOutput = $input.first().json.output || '';\nconst match = agentOutput.match(/\\[GUARDAR_DATOS:(\\{.*?\\})\\]/);\nconst mensajeLimpio = agentOutput.replace(/\\[GUARDAR_DATOS:\\{.*?\\}\\]/, '').trim();\nif (match) { let datos = {}; try { datos = JSON.parse(match[1]); } catch(e) {} return { output: mensajeLimpio, guardarEnSupabase: true, nombre: datos.nombre || $('PREPARADOR DE DATOS').first().json.nombreCliente, motivo: datos.motivo || '', preferencia: datos.preferencia || '', edad: datos.edad || '', calendarId: datos.calendarId || '', telefono: $('PREPARADOR DE DATOS').first().json.telefono }; } return { output: mensajeLimpio || agentOutput, guardarEnSupabase: false, telefono: $('PREPARADOR DE DATOS').first().json.telefono };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                368,
+                1904
+            ],
+            "id": "3f29dc9f-5085-4f90-93aa-8e09a05f1b52",
+            "name": "VERIFICADOR DE DATOS"
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "options": {
+                        "caseSensitive": true,
+                        "leftValue": "",
+                        "typeValidation": "strict",
+                        "version": 3
+                    },
+                    "conditions": [
+                        {
+                            "id": "ifg-c1",
+                            "leftValue": "={{ $json.guardarEnSupabase }}",
+                            "rightValue": "",
+                            "operator": {
+                                "type": "boolean",
+                                "operation": "true",
+                                "singleValue": true
+                            }
+                        }
+                    ],
+                    "combinator": "and"
+                }
+            },
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 2.3,
+            "position": [
+                592,
+                1904
+            ],
+            "id": "3a182b2b-f984-445c-af6d-6e9de553b9e5",
+            "name": "IF GUARDAR EN SUPABASE"
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "=https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/pacientes?telefono=eq.{{ $json.telefono }}",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "supabaseApi",
+                "sendHeaders": true,
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Prefer",
+                            "value": "resolution=merge-duplicates,return=minimal"
+                        }
+                    ]
+                },
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "=[{ \"telefono\": \"{{ $json.telefono }}\", \"nombre\": \"{{ $json.nombre }}\", \"calendar_id\": \"{{ $json.calendarId }}\", \"estado_actual\": null, \"ultima_actividad\": \"{{ $now.toISO() }}\" }]",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                936,
+                1976
+            ],
+            "id": "aff75d0d-fbda-4e54-8893-41d0e5600b5e",
+            "name": "SUPABASE UPSERT PACIENTE",
+            "credentials": {
+                "supabaseApi": {
+                    "id": "htg0D9rHTCZDLrWM",
+                    "name": "Supabase account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "messages-api",
+                "instanceName": "=AtendeJa",
+                "remoteJid": "={{ $('PREPARADOR DE DATOS').first().json.telefono }}",
+                "messageText": "={{ $json.output }}",
+                "options_message": {}
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                1920,
+                2080
+            ],
+            "id": "ef4de50b-cbd8-47a4-9362-6a933e0adbca",
+            "name": "Enviar texto",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "dhZcAfk3MJMwaSHT",
+                    "name": "Evolution account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "messages-api",
+                "instanceName": "=AtendeJa",
+                "remoteJid": "NUMERO_ADMIN",
+                "messageText": "=🆕 *Nuevo Lead/Cambio*\nPaciente: {{ $('PARSER CLASIFICADOR').first().json.nombreEnDB || $('PARSER CLASIFICADOR').first().json.nombreCliente }}\nTel: {{ $('PARSER CLASIFICADOR').first().json.telefono }}\nIntención: {{ $('PARSER CLASIFICADOR').first().json.necesidad }}\nResumen: {{ $('PARSER CLASIFICADOR').first().json.resumenNecesidad }}",
+                "options_message": {}
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                -432,
+                2912
+            ],
+            "id": "cf46e54a-d757-4581-b82c-82ced727a724",
+            "name": "Notificar Nuevo Admin",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "dhZcAfk3MJMwaSHT",
+                    "name": "Evolution account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "messages-api",
+                "instanceName": "=AtendeJa",
+                "remoteJid": "NUMERO_ADMIN",
+                "messageText": "=✅ *Cita Agendada*\nPaciente: {{ $('VERIFICADOR DE DATOS').first().json.nombre }}\nTel: {{ $('VERIFICADOR DE DATOS').first().json.telefono }}",
+                "options_message": {}
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                1920,
+                2272
+            ],
+            "id": "850b0d34-6fa3-4452-a04e-26124de46629",
+            "name": "Notificar Agenda Admin",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "dhZcAfk3MJMwaSHT",
+                    "name": "Evolution account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "resource": "messages-api",
+                "instanceName": "AtendeJa",
+                "remoteJid": "NUMERO_ADMIN",
+                "messageText": "=🚨 URGENCIA DENTAL\nPaciente: {{ $('NORMALIZAR CONTEXTO').first().json.nombreCliente }}\nTel: {{ $('NORMALIZAR CONTEXTO').first().json.telefono }}",
+                "options_message": {}
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                1344,
+                1520
+            ],
+            "id": "6990771c-47a3-4324-a2ac-d7c92936951e",
+            "name": "Notificar Urgencia Admin",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "dhZcAfk3MJMwaSHT",
+                    "name": "Evolution account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Todos los días 11:00 AM": {
+            "main": [
+                [
+                    {
+                        "node": "Calcula Fechas Mañana",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Calcula Fechas Mañana": {
+            "main": [
+                [
+                    {
+                        "node": "Turnos de mañana",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Turnos de mañana": {
+            "main": [
+                [
+                    {
+                        "node": "Traer Pacientes1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Traer Pacientes1": {
+            "main": [
+                [
+                    {
+                        "node": "Cruzar Datos y Generar Mensaje",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Cruzar Datos y Generar Mensaje": {
+            "main": [
+                [
+                    {
+                        "node": "Enviar a WhatsApp1",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Todos los días 18:00 PM": {
+            "main": [
+                [
+                    {
+                        "node": "Calcula Fechas de Ayer",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Calcula Fechas de Ayer": {
+            "main": [
+                [
+                    {
+                        "node": "Turnos de Ayer",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Turnos de Ayer": {
+            "main": [
+                [
+                    {
+                        "node": "Traer Pacientes",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Traer Pacientes": {
+            "main": [
+                [
+                    {
+                        "node": "Filtrar Cirugias y Mensaje",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Filtrar Cirugias y Mensaje": {
+            "main": [
+                [
+                    {
+                        "node": "Enviar a WhatsApp",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "No responde si admin",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "No responde si admin": {
+            "main": [
+                [],
+                [
+                    {
+                        "node": "AUDIO O ESCRITO",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AUDIO O ESCRITO": {
+            "main": [
+                [
+                    {
+                        "node": "CONVERTIDOR A DATA",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "PREPARADOR DE DATOS",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "CONVERTIDOR A DATA": {
+            "main": [
+                [
+                    {
+                        "node": "TRANSCRIPCION CON GROQ",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "TRANSCRIPCION CON GROQ": {
+            "main": [
+                [
+                    {
+                        "node": "PREPARADOR DE DATOS",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "PREPARADOR DE DATOS": {
+            "main": [
+                [
+                    {
+                        "node": "SUPABASE GET PACIENTE",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "SUPABASE GET PACIENTE": {
+            "main": [
+                [
+                    {
+                        "node": "GESTOR DE ESTADO",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "GESTOR DE ESTADO": {
+            "main": [
+                [
+                    {
+                        "node": "IF ESTADO ACTIVO",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "IF ESTADO ACTIVO": {
+            "main": [
+                [
+                    {
+                        "node": "SUPABASE TOUCH ACTIVIDAD",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "CLASIFICADOR DE NECESIDAD",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "SUPABASE TOUCH ACTIVIDAD": {
+            "main": [
+                [
+                    {
+                        "node": "NORMALIZAR CONTEXTO",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "CLASIFICADOR DE NECESIDAD": {
+            "main": [
+                [
+                    {
+                        "node": "PARSER CLASIFICADOR",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "PARSER CLASIFICADOR": {
+            "main": [
+                [
+                    {
+                        "node": "SUPABASE SET ESTADO",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "SUPABASE SET ESTADO": {
+            "main": [
+                [
+                    {
+                        "node": "NORMALIZAR CONTEXTO",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Notificar Nuevo Admin",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "NORMALIZAR CONTEXTO": {
+            "main": [
+                [
+                    {
+                        "node": "ROUTER DE NECESIDAD",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "ROUTER DE NECESIDAD": {
+            "main": [
+                [
+                    {
+                        "node": "AGENTE URGENCIA",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "AGENTE CONVERSACIONAL AGENDADO",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "AGENTE REAGENDAR",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "AGENTE CANCELAR",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "AGENTE INFO",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Groq Urgencia": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "AGENTE URGENCIA",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Groq Agendado": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "AGENTE CONVERSACIONAL AGENDADO",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Groq Reagendar": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "AGENTE REAGENDAR",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Groq Cancelar": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "AGENTE CANCELAR",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Groq Info": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "AGENTE INFO",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Memoria Urgencia": {
+            "ai_memory": [
+                [
+                    {
+                        "node": "AGENTE URGENCIA",
+                        "type": "ai_memory",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Memoria Agendado": {
+            "ai_memory": [
+                [
+                    {
+                        "node": "AGENTE CONVERSACIONAL AGENDADO",
+                        "type": "ai_memory",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Memoria Reagendar": {
+            "ai_memory": [
+                [
+                    {
+                        "node": "AGENTE REAGENDAR",
+                        "type": "ai_memory",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Memoria Cancelar": {
+            "ai_memory": [
+                [
+                    {
+                        "node": "AGENTE CANCELAR",
+                        "type": "ai_memory",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Memoria Info": {
+            "ai_memory": [
+                [
+                    {
+                        "node": "AGENTE INFO",
+                        "type": "ai_memory",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Calendar Tool": {
+            "ai_tool": [
+                [
+                    {
+                        "node": "AGENTE URGENCIA",
+                        "type": "ai_tool",
+                        "index": 0
+                    },
+                    {
+                        "node": "AGENTE CONVERSACIONAL AGENDADO",
+                        "type": "ai_tool",
+                        "index": 0
+                    },
+                    {
+                        "node": "AGENTE REAGENDAR",
+                        "type": "ai_tool",
+                        "index": 0
+                    },
+                    {
+                        "node": "AGENTE CANCELAR",
+                        "type": "ai_tool",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AGENTE URGENCIA": {
+            "main": [
+                [
+                    {
+                        "node": "Enviar texto",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Notificar Urgencia Admin",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "AGENTE CONVERSACIONAL AGENDADO": {
+            "main": [
+                [
+                    {
+                        "node": "VERIFICADOR DE DATOS",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "VERIFICADOR DE DATOS": {
+            "main": [
+                [
+                    {
+                        "node": "IF GUARDAR EN SUPABASE",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "IF GUARDAR EN SUPABASE": {
+            "main": [
+                [
+                    {
+                        "node": "SUPABASE UPSERT PACIENTE",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Enviar texto",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "SUPABASE UPSERT PACIENTE": {
+            "main": [
+                [
+                    {
+                        "node": "Enviar texto",
+                        "type": "main",
+                        "index": 0
+                    },
+                    {
+                        "node": "Notificar Agenda Admin",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "meta": {
+        "instanceId": "9c2e862245265371e8a9640572ad2c99a3a34e06ee10cdda87475dfa7a5f0d20"
+    }
+}

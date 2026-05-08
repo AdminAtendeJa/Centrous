@@ -10,13 +10,14 @@
       "projectId": "personal",
       "projectName": "Personal",
       "instanceIdentifier": "atende_n8n_wi7vgk_easypanel_host_victor camacho_a",
+      "workflowDir": "workflows/atende_n8n_wi7vgk_easypanel_host_victor camacho_a/personal",
       "verification": {
         "status": "verified",
         "normalizedHost": "https://atende-n8n.wi7vgk.easypanel.host",
         "userId": "de829b13-1f7a-48b8-9368-4991adbd3084",
         "userName": "Victor Camacho atendejasolucoesautomaticas@gmai",
         "userEmail": "atendejasolucoesautomaticas@gmail.com",
-        "lastCheckedAt": "2026-04-12T13:14:52.775Z"
+        "lastCheckedAt": "2026-04-19T14:57:04.304Z"
       }
     }
   ],
@@ -24,5 +25,6 @@
   "syncFolder": "workflows",
   "projectId": "personal",
   "projectName": "Personal",
-  "instanceIdentifier": "atende_n8n_wi7vgk_easypanel_host_victor camacho_a"
+  "instanceIdentifier": "atende_n8n_wi7vgk_easypanel_host_victor camacho_a",
+  "workflowDir": "workflows/atende_n8n_wi7vgk_easypanel_host_victor camacho_a/personal"
 }

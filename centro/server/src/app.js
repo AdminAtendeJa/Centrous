@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const dotenv = require('dotenv');
+const path = require('path');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
@@ -51,9 +52,17 @@ app.use((err, req, res, next) => {
     });
 });
 
-// ── 404 ──────────────────────────────────────────────────────────────────────
-app.use((req, res) => {
-    res.status(404).json({ error: true, message: 'Ruta no encontrada' });
+// ── Serve React Frontend (Production) ────────────────────────────────────────
+app.use(express.static(path.join(__dirname, '../../client/dist')));
+
+// ── 404 para la API ──────────────────────────────────────────────────────────
+app.use('/api/*', (req, res) => {
+    res.status(404).json({ error: true, message: 'Ruta API no encontrada' });
+});
+
+// ── React Router Fallback ────────────────────────────────────────────────────
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────────

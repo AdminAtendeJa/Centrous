@@ -1,0 +1,182 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "days",
+                            "triggerAtHour": 18
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                0,
+                0
+            ],
+            "id": "trigger_post",
+            "name": "Todos los días 18:00 PM"
+        },
+        {
+            "parameters": {
+                "jsCode": "const t = new Date();\nt.setDate(t.getDate() - 1);\nconst y = t.getFullYear();\nconst m = String(t.getMonth() + 1).padStart(2, '0');\nconst d = String(t.getDate()).padStart(2, '0');\nreturn { timeMin: `${y}-${m}-${d}T00:00:00Z`, timeMax: `${y}-${m}-${d}T23:59:59Z` };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                200,
+                0
+            ],
+            "id": "fechas_ayer",
+            "name": "Calcula Fechas de Ayer"
+        },
+        {
+            "parameters": {
+                "operation": "getAll",
+                "calendar": {
+                    "__rl": true,
+                    "value": "atendejasolucoesautomaticas@gmail.com",
+                    "mode": "list",
+                    "cachedResultName": "atendejasolucoesautomaticas@gmail.com"
+                },
+                "limit": 50,
+                "options": {
+                    "timeMin": "={{ $json.timeMin }}",
+                    "timeMax": "={{ $json.timeMax }}"
+                }
+            },
+            "type": "n8n-nodes-base.googleCalendar",
+            "typeVersion": 1.1,
+            "position": [
+                400,
+                0
+            ],
+            "id": "calendar_ayer",
+            "name": "Turnos de Ayer",
+            "credentials": {
+                "googleCalendarOAuth2Api": {
+                    "id": "eBmDZO4wagSdmdEM",
+                    "name": "Google Calendar account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "url": "=https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/pacientes?select=*",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "supabaseApi",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                600,
+                0
+            ],
+            "id": "dbsupa",
+            "name": "Traer Pacientes",
+            "credentials": {
+                "supabaseApi": {
+                    "id": "htg0D9rHTCZDLrWM",
+                    "name": "Supabase account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const eventos = $('Turnos de Ayer').all();\nconst pacientes = $input.first().json;\nlet mensajes = [];\n\nfor (const e of eventos) {\n  const summary = e.json.summary || '';\n  // Filtrar solo los turnos que requieren atencion post-operatoria\n  const isCirugia = /extracci|implante|cirug|endodoncia|tratamiento/i.test(summary);\n  if (!isCirugia) continue;\n\n  // Buscar paciente\n  const p = pacientes.find(p => p.nombre && summary.toLowerCase().includes(p.nombre.toLowerCase()));\n  \n  if (p && p.telefono) {\n    mensajes.push({\n      telefono: p.telefono,\n      mensaje: `¡Hola ${p.nombre}! 🏥 Te contactamos del equipo médico de Schbelta Clinic. Queremos saber cómo te sientes hoy tras la intervención de ayer. Del 1 al 10, ¿cuánto dolor o molestia presentas? (Recuerda mantener dieta blanda o líquida).`\n    });\n  }\n}\nreturn mensajes;"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                800,
+                0
+            ],
+            "id": "cruza_post",
+            "name": "Filtrar Cirugias y Mensaje"
+        },
+        {
+            "parameters": {
+                "resource": "messages-api",
+                "instanceName": "=AtendeJa",
+                "remoteJid": "={{ $json.telefono }}",
+                "messageText": "={{ $json.mensaje }}",
+                "options_message": {}
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                1000,
+                0
+            ],
+            "id": "evo_post",
+            "name": "Enviar a WhatsApp",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "dhZcAfk3MJMwaSHT",
+                    "name": "Evolution account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Todos los días 18:00 PM": {
+            "main": [
+                [
+                    {
+                        "node": "Calcula Fechas de Ayer",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Calcula Fechas de Ayer": {
+            "main": [
+                [
+                    {
+                        "node": "Turnos de Ayer",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Turnos de Ayer": {
+            "main": [
+                [
+                    {
+                        "node": "Traer Pacientes",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Traer Pacientes": {
+            "main": [
+                [
+                    {
+                        "node": "Filtrar Cirugias y Mensaje",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Filtrar Cirugias y Mensaje": {
+            "main": [
+                [
+                    {
+                        "node": "Enviar a WhatsApp",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

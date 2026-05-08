@@ -1,0 +1,182 @@
+{
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "days",
+                            "triggerAtHour": 11
+                        }
+                    ]
+                }
+            },
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                0,
+                0
+            ],
+            "id": "trigger",
+            "name": "Todos los días 11:00 AM"
+        },
+        {
+            "parameters": {
+                "jsCode": "const t = new Date();\nt.setDate(t.getDate() + 1);\nconst y = t.getFullYear();\nconst m = String(t.getMonth() + 1).padStart(2, '0');\nconst d = String(t.getDate()).padStart(2, '0');\nreturn { timeMin: `${y}-${m}-${d}T00:00:00Z`, timeMax: `${y}-${m}-${d}T23:59:59Z` };"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                200,
+                0
+            ],
+            "id": "fechas",
+            "name": "Calcula Fechas Mañana"
+        },
+        {
+            "parameters": {
+                "operation": "getAll",
+                "calendar": {
+                    "__rl": true,
+                    "value": "atendejasolucoesautomaticas@gmail.com",
+                    "mode": "list",
+                    "cachedResultName": "atendejasolucoesautomaticas@gmail.com"
+                },
+                "limit": 50,
+                "options": {
+                    "timeMin": "={{ $json.timeMin }}",
+                    "timeMax": "={{ $json.timeMax }}"
+                }
+            },
+            "type": "n8n-nodes-base.googleCalendar",
+            "typeVersion": 1.1,
+            "position": [
+                400,
+                0
+            ],
+            "id": "calendar",
+            "name": "Turnos de mañana",
+            "credentials": {
+                "googleCalendarOAuth2Api": {
+                    "id": "eBmDZO4wagSdmdEM",
+                    "name": "Google Calendar account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "url": "=https://nqsqyugkiqectlysfpkg.supabase.co/rest/v1/pacientes?select=*",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "supabaseApi",
+                "options": {}
+            },
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.4,
+            "position": [
+                600,
+                0
+            ],
+            "id": "dbsupa",
+            "name": "Traer Pacientes",
+            "credentials": {
+                "supabaseApi": {
+                    "id": "htg0D9rHTCZDLrWM",
+                    "name": "Supabase account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "const eventos = $('Turnos de mañana').all();\nconst pacientes = $input.first().json;\nlet mensajes = [];\n\nfor (const e of eventos) {\n  const summary = e.json.summary || '';\n  // Buscar qué paciente coincide con el título del evento\n  const p = pacientes.find(p => p.nombre && summary.toLowerCase().includes(p.nombre.toLowerCase()));\n  \n  if (p && p.telefono) {\n    const horalocal = new Date(e.json.start.dateTime).toLocaleTimeString('es-AR', {hour: '2-digit', minute:'2-digit'});\n    mensajes.push({\n      telefono: p.telefono,\n      mensaje: `¡Hola ${p.nombre}! 🏥 Te escribimos de Schbelta Clinic para confirmar tu turno de mañana a las ${horalocal}. ¿Podemos contar con tu asistencia? Por favor responde SÍ o REPROGRAMAR.`\n    });\n  }\n}\nreturn mensajes;"
+            },
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                800,
+                0
+            ],
+            "id": "cruza",
+            "name": "Cruzar Datos y Generar Mensaje"
+        },
+        {
+            "parameters": {
+                "resource": "messages-api",
+                "instanceName": "=AtendeJa",
+                "remoteJid": "={{ $json.telefono }}",
+                "messageText": "={{ $json.mensaje }}",
+                "options_message": {}
+            },
+            "type": "n8n-nodes-evolution-api.evolutionApi",
+            "typeVersion": 1,
+            "position": [
+                1000,
+                0
+            ],
+            "id": "evo",
+            "name": "Enviar a WhatsApp",
+            "credentials": {
+                "evolutionApi": {
+                    "id": "dhZcAfk3MJMwaSHT",
+                    "name": "Evolution account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Todos los días 11:00 AM": {
+            "main": [
+                [
+                    {
+                        "node": "Calcula Fechas Mañana",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Calcula Fechas Mañana": {
+            "main": [
+                [
+                    {
+                        "node": "Turnos de mañana",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Turnos de mañana": {
+            "main": [
+                [
+                    {
+                        "node": "Traer Pacientes",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Traer Pacientes": {
+            "main": [
+                [
+                    {
+                        "node": "Cruzar Datos y Generar Mensaje",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Cruzar Datos y Generar Mensaje": {
+            "main": [
+                [
+                    {
+                        "node": "Enviar a WhatsApp",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

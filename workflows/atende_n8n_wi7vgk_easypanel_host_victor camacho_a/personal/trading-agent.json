@@ -1,0 +1,422 @@
+{
+  "id": "n4jYAxmvqhB3bajA",
+  "name": "Trading Agent",
+  "active": false,
+  "nodes": [
+    {
+      "id": "f7b49383-4796-4123-a303-bf812bce9747",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        500
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "15dc158b-ea6c-490c-9ab2-209c6ae5f672",
+      "name": "Forex Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1400,
+        500
+      ],
+      "parameters": {
+        "url": "https://open.er-api.com/v6/latest/USD",
+        "method": "GET",
+        "options": {}
+      }
+    },
+    {
+      "id": "3fd6eb92-f6aa-41fe-8010-06002ba2ee40",
+      "name": "Data Preparer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        500
+      ],
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst rates = data.rates;\nconst focusPairs = ['EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF'];\nlet summary = \"Base Currency: USD\\n\";\n\nfocusPairs.forEach(pair => {\n    if (rates[pair]) {\n        summary += \"- USD/\" + pair + \": \" + rates[pair] + \"\\n\";\n    }\n});\n\nreturn {\n    marketSummary: summary,\n    fechaHora: new Date().toISOString()\n};"
+      }
+    },
+    {
+      "id": "b9ad92d1-169a-4949-bb49-a8c0925c1661",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1800,
+        500
+      ],
+      "parameters": {
+        "options": {
+          "systemMessage": "Eres un Analista Experto en Trading de FOREX de nivel Institucional.\nTu objetivo es realizar una INVESTIGACIÓN COMPLETA antes de identificar oportunidades de inversión.\n\nProceso de Trabajo:\n1. **Investigar**: Consulta el Calendario Económico para ver eventos de alto impacto y las Noticias de Mercado para el sentimiento actual.\n2. **Consultar Conocimiento**: Si necesitas recordar estrategias específicas del usuario, usa el Retriever.\n3. **Analizar**: Cruza los datos de tasas de cambio (Base USD) con los hallazgos de investigación.\n4. **Reportar**: Genera un reporte premium para WhatsApp.\n\nContexto Inicial:\n- Fecha y hora: {{ $json.fechaHora }}\n- Tasas de Cambio: {{ $json.marketSummary }}\n\nInstrucciones:\n- Usa negritas y emojis.\n- Identifica oportunidades claras o recomienda precaución si hay noticias de alto impacto pronto.\n- NO des consejos financieros legales."
+        }
+      }
+    },
+    {
+      "id": "6895ec0c-0fe6-4575-a831-d920e606bb26",
+      "name": "WhatsApp Alert",
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        2100,
+        500
+      ],
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "AtendeJa",
+        "remoteJid": "554884553306@s.whatsapp.net",
+        "messageText": "={{ $json.output }}",
+        "options_message": {}
+      },
+      "credentials": {
+        "evolutionApi": {
+          "id": "dhZcAfk3MJMwaSHT",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "id": "scraper-news-id",
+      "name": "Market News",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        1600,
+        700
+      ],
+      "parameters": {
+        "url": "https://www.dailyfx.com/feeds/market-news",
+        "method": "GET",
+        "toolDescription": "Usa esta herramienta para obtener las noticias más recientes y el sentimiento del mercado Forex.",
+        "responseType": "text"
+      }
+    },
+    {
+      "id": "economic-calendar-id",
+      "name": "Economic Calendar",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        1750,
+        700
+      ],
+      "parameters": {
+        "url": "https://tradingeconomics.com/rss/calendar.aspx",
+        "method": "GET",
+        "toolDescription": "Usa esta herramienta para consultar el calendario económico y eventos de alto impacto para las divisas.",
+        "responseType": "text"
+      }
+    },
+    {
+      "id": "94a745f1-4819-443b-81bb-65c11f70bfbc",
+      "name": "Groq Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1800,
+        700
+      ],
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "credentials": {
+        "groqApi": {
+          "id": "ajcc5lsup6acbPrm",
+          "name": "Groq audio whisper"
+        }
+      }
+    },
+    {
+      "id": "507fa5af-5425-47e1-bf90-776012928d9a",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1950,
+        700
+      ],
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "trading_agent_forex_v2",
+        "contextWindowLength": 10
+      }
+    },
+    {
+      "id": "openai-embedding-id",
+      "name": "OpenAI Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1400,
+        900
+      ],
+      "parameters": {
+        "model": "text-embedding-3-small",
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "placeholder-id",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "id": "vector-store-retrieve-id",
+      "name": "Vector Store Retrieve",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        900
+      ],
+      "parameters": {
+        "mode": "retrieve",
+        "toolName": "TradingKnowledge",
+        "toolDescription": "Consulta aquí tus manuales de trading, estrategias y teoría personalizada.",
+        "memoryKey": {
+          "mode": "list",
+          "value": "forex_knowledge"
+        },
+        "prompt": "={{ $input.item.json.query }}"
+      }
+    },
+    {
+      "id": "retriever-vector-store-id",
+      "name": "Retriever Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.retrieverVectorStore",
+      "typeVersion": 1,
+      "position": [
+        1750,
+        900
+      ],
+      "parameters": {
+        "topK": 5
+      }
+    },
+    {
+      "id": "manual-trigger-id",
+      "name": "Manual Documents Upload",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        1100
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "data-loader-id",
+      "name": "Data Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        1150,
+        1100
+      ],
+      "parameters": {
+        "dataType": "binary",
+        "binaryDataKey": "data",
+        "binaryMode": "allInputData",
+        "loader": "auto"
+      }
+    },
+    {
+      "id": "text-splitter-id",
+      "name": "Text Splitter",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        1250
+      ],
+      "parameters": {
+        "chunkSize": 1000,
+        "chunkOverlap": 100
+      }
+    },
+    {
+      "id": "vector-store-ingest-id",
+      "name": "Vector Store Ingest",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1,
+      "position": [
+        1450,
+        1100
+      ],
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "mode": "list",
+          "value": "forex_knowledge"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Forex Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forex Data": {
+      "main": [
+        [
+          {
+            "node": "Data Preparer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Preparer": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Documents Upload": {
+      "main": [
+        [
+          {
+            "node": "Data Loader",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Loader": {
+      "main": [
+        [
+          {
+            "node": "Vector Store Ingest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retriever Vector Store": {
+      "ai_retriever": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_retriever",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Market News": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Economic Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store Retrieve",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Retrieve": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Retriever Vector Store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "tags": []
+}

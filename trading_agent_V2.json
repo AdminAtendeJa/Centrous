@@ -1,0 +1,379 @@
+{
+  "id": "n4jYAxmvqhB3bajA",
+  "name": "Trading Agent V2 (Fixed)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "f7b49383-4796-4123-a303-bf812bce9747",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        544
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "15dc158b-ea6c-490c-9ab2-209c6ae5f672",
+      "name": "Forex Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1408,
+        544
+      ],
+      "parameters": {
+        "url": "https://open.er-api.com/v6/latest/USD",
+        "method": "GET",
+        "options": {}
+      }
+    },
+    {
+      "id": "3fd6eb92-f6aa-41fe-8010-06002ba2ee40",
+      "name": "Data Preparer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        544
+      ],
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst rates = data.rates;\nconst focusPairs = ['EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF'];\nlet summary = \"Base Currency: USD\\n\";\n\nfocusPairs.forEach(pair => {\n    if (rates[pair]) {\n        summary += \"- USD/\" + pair + \": \" + rates[pair] + \"\\n\";\n    }\n});\n\nreturn {\n    marketSummary: summary,\n    fechaHora: new Date().toISOString()\n};"
+      }
+    },
+    {
+      "id": "b9ad92d1-169a-4949-bb49-a8c0925c1661",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1808,
+        544
+      ],
+      "parameters": {
+        "options": {
+          "systemMessage": "Eres un Analista Experto en Trading de FOREX de nivel Institucional.\nTu objetivo es analizar los datos del mercado, las noticias actuales y tu base de conocimientos para identificar oportunidades de inversión.\n\nContexto Actual:\n- Fecha y hora: {{ $json.fechaHora }}\n- Tasas de Cambio (Base USD): {{ $json.marketSummary }}\n\nCapacidades:\n1. **Conocimiento Interno**: Si necesitas recordar estrategias de trading específicas o teoría, consulta tu base de conocimientos (Retriever).\n2. **Noticias en Vivo**: Usa la herramienta de noticias para ver qué está pasando en el mundo que pueda afectar a las divisas.\n\nInstrucciones:\n- Revisa las tasas de cambio y busca desviaciones o tendencias interesantes.\n- Identifica si hay algún par de divisas con una oportunidad clara (ej. debilidad del USD frente a EUR).\n- Devuelve un análisis conciso, profesional y con puntos de acción claros para WhatsApp.\n- Usa negritas para los nombres de los pares (*USD/EUR*) y los valores.\n- NO des consejos financieros legales, actúa como un asistente analítico especializado."
+        }
+      }
+    },
+    {
+      "id": "6895ec0c-0fe6-4575-a831-d920e606bb26",
+      "name": "WhatsApp Alert",
+      "type": "n8n-nodes-evolution-api.evolutionApi",
+      "typeVersion": 1,
+      "position": [
+        2064,
+        544
+      ],
+      "parameters": {
+        "resource": "messages-api",
+        "instanceName": "AtendeJa",
+        "remoteJid": "554884553306@s.whatsapp.net",
+        "messageText": "={{ $json.output }}",
+        "options_message": {}
+      },
+      "credentials": {
+        "evolutionApi": {
+          "id": "dhZcAfk3MJMwaSHT",
+          "name": "Evolution account"
+        }
+      }
+    },
+    {
+      "id": "94a745f1-4819-443b-81bb-65c11f70bfbc",
+      "name": "Groq Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        1808,
+        752
+      ],
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "credentials": {
+        "groqApi": {
+          "id": "ajcc5lsup6acbPrm",
+          "name": "Groq audio whisper"
+        }
+      }
+    },
+    {
+      "id": "507fa5af-5425-47e1-bf90-776012928d9a",
+      "name": "Simple Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        1952,
+        752
+      ],
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "trading_agent_forex_v1",
+        "contextWindowLength": 6
+      }
+    },
+    {
+      "id": "scraper-news-id",
+      "name": "News Scraper",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        1700,
+        752
+      ],
+      "parameters": {
+        "url": "https://www.dailyfx.com/feeds/market-news",
+        "method": "GET",
+        "toolDescription": "Tool to fetch the latest Forex market news and fundamental analysis updates.",
+        "responseType": "text"
+      }
+    },
+    {
+      "id": "openai-embedding-id",
+      "name": "OpenAI Embeddings",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1300,
+        850
+      ],
+      "parameters": {
+        "model": "text-embedding-3-small",
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "placeholder-id",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "id": "vector-store-retrieve-id",
+      "name": "Vector Store Retrieve",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1,
+      "position": [
+        1450,
+        850
+      ],
+      "parameters": {
+        "mode": "retrieve",
+        "toolName": "TradingKnowledge",
+        "toolDescription": "Usa esta herramienta para consultar estrategias de trading, indicadores y teoría aprendida de documentos subidos.",
+        "memoryKey": {
+          "mode": "list",
+          "value": "forex_knowledge"
+        },
+        "prompt": "={{ $input.item.json.query }}"
+      }
+    },
+    {
+      "id": "retriever-vector-store-id",
+      "name": "Retriever Vector Store",
+      "type": "@n8n/n8n-nodes-langchain.retrieverVectorStore",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        850
+      ],
+      "parameters": {
+        "topK": 4
+      }
+    },
+    {
+      "id": "manual-trigger-id",
+      "name": "Manual Documents Upload",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        1000
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "data-loader-id",
+      "name": "Data Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        1000
+      ],
+      "parameters": {
+        "dataType": "binary",
+        "binaryDataKey": "data",
+        "binaryMode": "allInputData",
+        "loader": "auto",
+        "textSplittingMode": "simple"
+      }
+    },
+    {
+      "id": "vector-store-ingest-id",
+      "name": "Vector Store Ingest",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        1000
+      ],
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "mode": "list",
+          "value": "forex_knowledge"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Forex Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Forex Data": {
+      "main": [
+        [
+          {
+            "node": "Data Preparer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Preparer": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Documents Upload": {
+      "main": [
+        [
+          {
+            "node": "Data Loader",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Loader": {
+      "main": [
+        [
+          {
+            "node": "Vector Store Ingest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retriever Vector Store": {
+      "ai_retriever": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_retriever",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Vector Store Retrieve",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Vector Store Ingest",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Vector Store Retrieve": {
+      "ai_vectorStore": [
+        [
+          {
+            "node": "Retriever Vector Store",
+            "type": "ai_vectorStore",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "9c2e862245265371e8a9640572ad2c99a3a34e06ee10cdda87475dfa7a5f0d20"
+  }
+}

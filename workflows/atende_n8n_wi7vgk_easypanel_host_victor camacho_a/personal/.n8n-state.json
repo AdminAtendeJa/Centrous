@@ -1,0 +1,14 @@
+{
+  "workflows": {
+    "T5DP7sRe0KQRyJ10": {
+      "lastSyncedHash": "20dc52737744870f34a9b0502c1658a1f53c9be008f1371ac91c233b3767f576",
+      "lastSyncedAt": "2026-04-12T13:30:41.157Z",
+      "filename": "Atendente.workflow.ts"
+    },
+    "n4jYAxmvqhB3bajA": {
+      "lastSyncedHash": "f060209ef363cf0e32675551930ac16800302600cf944e34a9893db0b3fcf632",
+      "lastSyncedAt": "2026-04-12T22:17:29.055Z",
+      "filename": "trading-agent.workflow.ts"
+    }
+  }
+}
