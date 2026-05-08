@@ -61,8 +61,12 @@ app.use('/api', (req, res) => {
 });
 
 // ── React Router Fallback ────────────────────────────────────────────────────
-app.get('/(.*)', (req, res) => {
-    res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+app.use((req, res, next) => {
+    if (req.method === 'GET') {
+        res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+    } else {
+        next();
+    }
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────────
