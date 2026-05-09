@@ -61,23 +61,23 @@ export default function Dashboard() {
 
             {/* Metrics */}
             <div className="grid-4" style={{ marginBottom: 24 }}>
-                <div className="card">
+                <div className="card" style={{ background: 'linear-gradient(135deg, var(--color-surface), rgba(99, 102, 241, 0.03))' }}>
                     <div className="flex-between mb-4">
-                        <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Leads Activos</span>
-                        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <Users size={18} color="#3b82f6" />
+                        <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>Leads Activos</span>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Users size={18} color="var(--color-primary)" />
                         </div>
                     </div>
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>{activeLeads.length}</div>
+                    <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.02em' }}>{activeLeads.length}</div>
                 </div>
-                <div className="card">
+                <div className="card" style={{ background: 'linear-gradient(135deg, var(--color-surface), rgba(16, 185, 129, 0.03))' }}>
                     <div className="flex-between mb-4">
-                        <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Valor Cerrado</span>
-                        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(34, 197, 94, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <TrendingUp size={18} color="#22c55e" />
+                        <span style={{ fontSize: 13, color: 'var(--text-muted)', fontWeight: 500 }}>Valor Cerrado</span>
+                        <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <TrendingUp size={18} color="var(--color-success)" />
                         </div>
                     </div>
-                    <div style={{ fontSize: 28, fontWeight: 800 }}>${totalValue.toLocaleString()}</div>
+                    <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: '-0.02em' }}>${totalValue.toLocaleString()}</div>
                 </div>
             </div>
 
@@ -86,51 +86,52 @@ export default function Dashboard() {
                 {/* Tasks */}
                 <div className="card">
                     <div className="flex-between mb-4">
-                        <h2 style={{ fontSize: 15, fontWeight: 700 }}>Tareas del Día</h2>
-                        <span className="badge badge-primary">{pendingTasks.length} pendientes</span>
+                        <h2 style={{ fontSize: 16, fontWeight: 700 }}>Tareas Pendientes</h2>
+                        <span className="badge badge-primary">{pendingTasks.length} hoy</span>
                     </div>
 
                     <form onSubmit={handleAddTask} className="flex gap-2 mb-4">
                         <input
                             value={newTask}
                             onChange={(e) => setNewTask(e.target.value)}
-                            placeholder="Agregar tarea rápida…"
-                            style={{ flex: 1, padding: '8px 12px', borderRadius: 6, border: '1px solid var(--color-border)', background: 'var(--color-surface-2)' }}
+                            placeholder="¿Qué hay que hacer hoy?"
+                            style={{ flex: 1 }}
                         />
-                        <button type="submit" className="btn btn-primary btn-sm" style={{ flexShrink: 0 }}>
-                            <Plus size={14} />
+                        <button type="submit" className="btn btn-primary" style={{ padding: '0 16px' }}>
+                            <Plus size={18} />
                         </button>
                     </form>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                         {tasks.length === 0 && (
-                            <div className="empty-state" style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)' }}>
-                                <CheckCircle2 size={32} style={{ margin: '0 auto 12px', opacity: 0.5 }} />
-                                <p>¡Sin tareas! Disfruta el día 🎉</p>
+                            <div className="empty-state" style={{ padding: 32 }}>
+                                <CheckCircle2 size={40} style={{ opacity: 0.2 }} />
+                                <h3>¡Todo despejado!</h3>
+                                <p>No tienes tareas pendientes para este momento.</p>
                             </div>
                         )}
                         {tasks.map((task) => (
                             <div
                                 key={task.id}
+                                className="glass-panel"
                                 style={{
-                                    display: 'flex', alignItems: 'center', gap: 10,
-                                    padding: '9px 12px',
-                                    background: 'var(--color-surface-2)',
-                                    borderRadius: 'var(--radius-sm)',
-                                    opacity: task.done ? 0.5 : 1,
+                                    display: 'flex', alignItems: 'center', gap: 12,
+                                    padding: '12px 16px',
+                                    opacity: task.done ? 0.4 : 1,
                                     transition: 'var(--transition)',
+                                    background: 'rgba(255, 255, 255, 0.01)',
                                 }}
                             >
                                 <button
                                     onClick={() => toggleTask(task.id)}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: task.done ? 'var(--color-success)' : 'var(--text-muted)', flexShrink: 0 }}
+                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: task.done ? 'var(--color-success)' : 'var(--text-muted)', display: 'flex' }}
                                 >
-                                    {task.done ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                                    {task.done ? <CheckCircle2 size={18} /> : <Circle size={18} />}
                                 </button>
-                                <div style={{ width: 6, height: 6, borderRadius: '50%', background: PRIORITY_COLOR[task.priority] || PRIORITY_COLOR.medium, flexShrink: 0 }} />
-                                <span style={{ flex: 1, fontSize: 13, textDecoration: task.done ? 'line-through' : 'none' }}>{task.text}</span>
-                                <button onClick={() => deleteTask(task.id)} className="btn-icon" style={{ padding: 4, background: 'transparent', border: 'none', color: 'var(--color-danger)', cursor: 'pointer' }}>
-                                    <Trash2 size={13} />
+                                <div style={{ width: 4, height: 16, borderRadius: 2, background: PRIORITY_COLOR[task.priority] || PRIORITY_COLOR.medium, flexShrink: 0 }} />
+                                <span style={{ flex: 1, fontSize: 14, fontWeight: 500, textDecoration: task.done ? 'line-through' : 'none' }}>{task.text}</span>
+                                <button onClick={() => deleteTask(task.id)} className="btn-icon" style={{ width: 32, height: 32, color: 'var(--color-danger)', background: 'transparent', border: 'none' }}>
+                                    <Trash2 size={14} />
                                 </button>
                             </div>
                         ))}
@@ -140,32 +141,47 @@ export default function Dashboard() {
                 {/* Right Column */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                     {/* Agent Status */}
-                    <div className="card" style={{ background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.05), rgba(219, 39, 119, 0.05))', border: '1px solid rgba(124, 58, 237, 0.1)' }}>
-                        <div className="flex-between mb-3" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <h2 style={{ fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
-                                <Zap size={14} color="#7c3aed" /> Estado del Agente
+                    <div className="card" style={{ background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1))', border: '1px solid rgba(99, 102, 241, 0.2)' }}>
+                        <div className="flex-between mb-3">
+                            <h2 style={{ fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Zap size={16} color="var(--color-primary)" fill="var(--color-primary)" /> Centrous Copilot
                             </h2>
-                            <div className="ai-pulse" style={{ width: 8, height: 8, borderRadius: '50%', background: settings.aiApiKey ? '#22c55e' : '#64748b' }} />
+                            <div className="ai-pulse" style={{ width: 10, height: 10, borderRadius: '50%', background: settings.aiApiKey ? 'var(--color-success)' : 'var(--text-muted)' }} />
                         </div>
-                        <div style={{ fontSize: 12, lineHeight: 1.5, color: 'var(--text-secondary)' }}>
+                        <div style={{ fontSize: 13, lineHeight: 1.6, color: 'var(--text-secondary)', fontWeight: 400 }}>
                             {settings.aiApiKey ? (
                                 <>
-                                    Agente <strong>{settings.aiModel}</strong> activo.<br />
-                                    Próximo escaneo automático en 30 min.
+                                    Inteligencia artificial <strong style={{ color: '#fff' }}>{settings.aiModel}</strong> activa y lista para calificar tus leads.
                                 </>
                             ) : (
-                                "IA no configurada. Ve a Ajustes para activar el Copiloto."
+                                "Conecta tu API Key de Groq o OpenAI para activar la calificación automática."
                             )}
                         </div>
                     </div>
 
                     {/* Quick actions */}
                     <div className="card">
-                        <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Acciones Rápidas</h2>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                        <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>Acceso Rápido</h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
                             {QUICK_ACTIONS.map(({ label, icon: Icon, action, color }) => (
-                                <button key={label} onClick={action} className="btn btn-ghost" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 10px', fontSize: 11, background: 'var(--color-surface-2)', border: 'none', borderRadius: 8, cursor: 'pointer' }}>
-                                    <Icon size={18} color={color} />
+                                <button 
+                                    key={label} 
+                                    onClick={action} 
+                                    className="btn-ghost" 
+                                    style={{ 
+                                        display: 'flex', 
+                                        flexDirection: 'column', 
+                                        alignItems: 'center', 
+                                        gap: 8, 
+                                        padding: '16px 12px', 
+                                        fontSize: 12, 
+                                        fontWeight: 600,
+                                        borderRadius: 12,
+                                        border: '1px solid var(--color-border)',
+                                        cursor: 'pointer' 
+                                    }}
+                                >
+                                    <Icon size={20} color={color} />
                                     {label}
                                 </button>
                             ))}
@@ -174,23 +190,23 @@ export default function Dashboard() {
 
                     {/* Recent Leads */}
                     <div className="card" style={{ flex: 1 }}>
-                        <div className="flex-between mb-4" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <h2 style={{ fontSize: 14, fontWeight: 700 }}>Leads Recientes</h2>
-                            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/crm')} style={{ fontSize: 11, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-                                Ver todos <ArrowRight size={13} />
+                        <div className="flex-between mb-4">
+                            <h2 style={{ fontSize: 15, fontWeight: 700 }}>Leads Recientes</h2>
+                            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/crm')} style={{ color: 'var(--text-muted)', border: 'none', background: 'transparent' }}>
+                                <ArrowRight size={16} />
                             </button>
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            {leads.slice(0, 4).map((lead) => (
-                                <div key={lead.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--color-border)' }}>
-                                    <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--color-surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700, color: 'var(--color-primary-light)', flexShrink: 0 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                            {leads.slice(0, 5).map((lead) => (
+                                <div key={lead.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--color-border)' }}>
+                                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--color-surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, fontWeight: 700, color: 'var(--color-primary-light)', flexShrink: 0 }}>
                                         {lead.name[0]}
                                     </div>
                                     <div style={{ flex: 1, minWidth: 0 }}>
-                                        <div style={{ fontSize: 12, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{lead.name}</div>
-                                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{lead.company}</div>
+                                        <div style={{ fontSize: 14, fontWeight: 600, color: '#fff' }}>{lead.name}</div>
+                                        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{lead.company}</div>
                                     </div>
-                                    <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-success)' }}>${lead.value?.toLocaleString() || 0}</div>
+                                    <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--color-success)' }}>${lead.value?.toLocaleString() || 0}</div>
                                 </div>
                             ))}
                             {leads.length === 0 && <div style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: 12 }}>No hay leads aún.</div>}

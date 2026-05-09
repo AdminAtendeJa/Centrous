@@ -13,27 +13,28 @@ export function KanbanColumn({ stage, leads, onLeadClick, onLeadDoubleClick, onD
     });
 
     return (
-        <div style={{ minWidth: 260, display: 'flex', flexDirection: 'column' }}>
+        <div style={{ minWidth: 280, display: 'flex', flexDirection: 'column' }}>
             {/* Header Column */}
-            <div style={{ marginBottom: 12, padding: '0 4px' }}>
-                <div className="flex-between" style={{ marginBottom: 4 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: stage.color || 'var(--text-muted)' }} />
+            <div style={{ marginBottom: 16, padding: '0 8px' }}>
+                <div className="flex-between" style={{ marginBottom: 6 }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 10, color: '#fff' }}>
+                        <span style={{ width: 10, height: 10, borderRadius: '50%', background: stage.color || 'var(--text-muted)', boxShadow: `0 0 8px ${stage.color || 'transparent'}` }} />
                         {stage.label}
                     </span>
                     <span style={{
-                        background: 'var(--color-surface-3)',
-                        color: 'var(--text-primary)',
-                        borderRadius: 99,
-                        padding: '2px 10px',
+                        background: 'rgba(255,255,255,0.05)',
+                        color: 'var(--text-secondary)',
+                        borderRadius: 6,
+                        padding: '2px 8px',
                         fontSize: 11,
-                        fontWeight: 700
+                        fontWeight: 700,
+                        border: '1px solid var(--color-border)'
                     }}>
                         {leads.length}
                     </span>
                 </div>
-                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                    ${leads.reduce((sum, lead) => sum + (lead.value || 0), 0).toLocaleString()}
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 500, letterSpacing: '0.02em' }}>
+                    VALOR TOTAL: <span style={{ color: 'var(--color-success)' }}>${leads.reduce((sum, lead) => sum + (lead.value || 0), 0).toLocaleString()}</span>
                 </div>
             </div>
 
@@ -41,19 +42,20 @@ export function KanbanColumn({ stage, leads, onLeadClick, onLeadDoubleClick, onD
             <motion.div
                 ref={setNodeRef}
                 animate={{
-                    backgroundColor: isOver ? 'rgba(124, 58, 237, 0.05)' : 'rgba(255,255,255,0.01)',
-                    borderColor: isOver ? 'var(--color-primary-light)' : 'var(--color-border)',
+                    backgroundColor: isOver ? 'rgba(99, 102, 241, 0.05)' : 'rgba(255,255,255,0.01)',
+                    borderColor: isOver ? 'var(--color-primary)' : 'var(--color-border)',
                 }}
                 style={{
                     borderRadius: 'var(--radius-lg)',
                     borderStyle: 'solid',
                     borderWidth: '1px',
-                    padding: 8,
+                    padding: '12px 10px',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: 10,
+                    gap: 12,
                     flex: 1,
-                    minHeight: 300,
+                    minHeight: '60vh',
+                    background: 'rgba(255, 255, 255, 0.01)',
                 }}
             >
                 {leads.map((lead) => (
