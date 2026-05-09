@@ -36,12 +36,12 @@ export default function TopBar({ title }) {
 
                 <div className="h-4 w-px bg-border-tertiary mx-1 hide-mobile" />
 
-                <button className="btn-icon-v3">
+                <button className="btn-icon-v3 hide-mobile">
                     <Bell size={16} className="text-secondary" />
                 </button>
 
                 <button className="btn-icon-v3 lg:hidden" onClick={toggleUtility}>
-                    <PanelRight size={16} className="text-secondary" />
+                    <Bell size={18} className="text-accent" />
                 </button>
 
                 <div className="flex items-center gap-2 ml-2">

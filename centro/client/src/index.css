@@ -447,3 +447,102 @@ body {
 .main-canvas-v3 {
   overflow: hidden;
 }
+
+/* --- GLOBAL MOBILE ADAPTATION --- */
+@media (max-width: 640px) {
+  /* Font size adjustments */
+  .text-18 { font-size: 16px !important; }
+  .text-28 { font-size: 22px !important; }
+  .text-13 { font-size: 12px !important; }
+
+  /* Stack grids */
+  .grid-cols-2, .grid-cols-3, .grid-cols-4, .lg\:grid-cols-2, .lg\:grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Table to Card conversion (Generic) */
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  tr {
+    margin-bottom: 12px;
+    border: 0.5px solid var(--color-border-primary);
+    border-radius: 12px;
+    padding: 8px;
+    background: white;
+  }
+
+  td {
+    border: none;
+    position: relative;
+    padding-left: 50% !important;
+    text-align: right;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  td::before {
+    content: attr(data-label);
+    position: absolute;
+    left: 12px;
+    width: 45%;
+    text-align: left;
+    font-weight: 700;
+    font-size: 10px;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+  }
+
+  /* Dashboard specific fix */
+  .dashboard-v3 .grid {
+    gap: 12px !important;
+  }
+  
+  .section-v3 {
+    padding: 16px 12px !important;
+  }
+  
+  /* Modal adaptation */
+  .modal-v3-content {
+    width: 95vw !important;
+    max-height: 90vh;
+    margin: 10px;
+  }
+}
+
+/* --- SPECIFIC FIXES FOR CRM & FINANCE --- */
+.stat-grid-v3 {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .stat-grid-v3 {
+    flex-direction: column;
+  }
+  
+  .flex-between {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 12px;
+  }
+  
+  .search-box-v3 {
+    width: 100% !important;
+  }
+  
+  .btn-v3-primary, .btn-v3-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}
