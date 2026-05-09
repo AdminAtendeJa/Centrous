@@ -1,20 +1,25 @@
 import { NavLink } from 'react-router-dom';
 import { 
-    LayoutDashboard, CheckSquare, Calendar, MessageCircle, 
-    Folder, BarChart2, Users, Plug, Settings, User 
+    LayoutDashboard, CheckSquare, BarChart, MessageCircle, 
+    Folder, Database, Users, Plug, Settings, Briefcase,
+    Zap, Share2, DollarSign
 } from 'lucide-react';
 import { useAuthStore } from '../../store/index.js';
 
 const NAV_ITEMS = [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'Início' },
-    { to: '/productivity', icon: CheckSquare, label: 'Tarefas', badge: true },
-    { to: '/finance', icon: Calendar, label: 'Agenda' },
-    { to: '/inbox', icon: MessageCircle, label: 'Mensagens', badge: true },
+    { to: '/dashboard', icon: LayoutDashboard, label: 'Painel Geral' },
+    { to: '/crm', icon: Users, label: 'CRM & Leads' },
+    { to: '/finance', icon: DollarSign, label: 'Financeiro' },
+    { to: '/productivity', icon: CheckSquare, label: 'Tarefas & Foco' },
     { type: 'divider' },
-    { to: '/notion', icon: Folder, label: 'Arquivos' },
-    { to: '/social', icon: BarChart2, label: 'Relatórios' },
-    { to: '/crm', icon: Users, label: 'Clientes' },
-    { to: '/integrations', icon: Plug, label: 'Integrações' },
+    { to: '/inbox', icon: MessageCircle, label: 'Mensagens', badge: true },
+    { to: '/notion', icon: Folder, label: 'Notion Hub' },
+    { to: '/social', icon: Share2, label: 'Social & Ads' },
+    { to: '/proposals', icon: Briefcase, label: 'Propostas' },
+    { type: 'divider' },
+    { to: '/n8n', icon: Zap, label: 'n8n Monitor' },
+    { to: '/supabase-monitor', icon: Database, label: 'Supabase' },
+    { to: '/integrations', icon: Plug, label: 'Conexões' },
 ];
 
 export default function Sidebar() {
@@ -23,7 +28,9 @@ export default function Sidebar() {
 
     return (
         <aside className="sidebar-v3">
-            <div className="logo-v3">Ct</div>
+            <div className="logo-v3">
+                <div className="logo-inner-v3">C</div>
+            </div>
 
             <nav className="nav-v3">
                 {NAV_ITEMS.map((item, idx) => (
@@ -34,7 +41,6 @@ export default function Sidebar() {
                             key={item.to}
                             to={item.to}
                             className={({ isActive }) => `nav-item-v3 ${isActive ? 'active' : ''}`}
-                            title={item.label}
                         >
                             <item.icon size={18} strokeWidth={2} />
                             {item.badge && <div className="nav-badge-v3" />}
@@ -45,13 +51,13 @@ export default function Sidebar() {
             </nav>
 
             <div className="sidebar-footer-v3">
-                <NavLink to="/settings" className="nav-item-v3" title="Configurações">
+                <NavLink to="/settings" className={({ isActive }) => `nav-item-v3 ${isActive ? 'active' : ''}`}>
                     <Settings size={18} strokeWidth={2} />
-                    <div className="nav-tooltip-v3">Configurações</div>
+                    <div className="nav-tooltip-v3">Ajustes</div>
                 </NavLink>
-                <div className="avatar-v3" title="Meu perfil">
+                <div className="avatar-v3">
                     {initials}
-                    <div className="nav-tooltip-v3">Meu perfil</div>
+                    <div className="nav-tooltip-v3">Perfil</div>
                 </div>
             </div>
         </aside>
