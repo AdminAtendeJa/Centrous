@@ -103,26 +103,37 @@ body {
 .nav-item-v3 {
   width: 44px;
   height: 44px;
-  border-radius: var(--border-radius-md);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #71717a;
+  color: #94a3b8;
   cursor: pointer;
   transition: var(--transition);
   position: relative;
   text-decoration: none;
+  background: transparent;
 }
 
 .nav-item-v3:hover {
-  background: var(--color-background-tertiary);
-  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
 .nav-item-v3.active {
-  background: var(--color-background-primary);
-  color: var(--color-accent);
-  box-shadow: var(--shadow-sm);
+  background: var(--color-accent);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+}
+
+.nav-item-v3.active::before {
+  content: '';
+  position: absolute;
+  left: -10px;
+  width: 4px;
+  height: 20px;
+  background: var(--color-accent);
+  border-radius: 0 4px 4px 0;
 }
 
 .nav-item-v3 span {
