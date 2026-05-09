@@ -146,6 +146,8 @@ function AnimatedRoutes() {
                                         <Route path="/integrations" element={<PageWrapper><Integrations /></PageWrapper>} />
                                         <Route path="/notion" element={<PageWrapper><NotionHub /></PageWrapper>} />
                                         <Route path="/n8n" element={<PageWrapper><N8nMonitor /></PageWrapper>} />
+                                        <Route path="/integrations" element={<PageWrapper><IntegrationsPage /></PageWrapper>} />
+                                        <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
                                         <Route path="/social" element={<PageWrapper><SocialMedia /></PageWrapper>} />
                                         <Route path="/productivity" element={<PageWrapper><Productivity /></PageWrapper>} />
                                         <Route path="/finance" element={<PageWrapper><Finance /></PageWrapper>} />

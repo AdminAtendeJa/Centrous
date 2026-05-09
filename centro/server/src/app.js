@@ -56,7 +56,8 @@ app.use('/api/n8n', require('./routes/n8n.routes'));
 app.use('/api/webhooks', require('./routes/webhooks.routes'));
 app.use('/api/ai', require('./routes/ai.routes'));
 app.use('/api/social', require('./routes/social.routes'));
-app.use('/api/integrations', require('./routes/integrations.routes'));
+app.use('/api/integrations-config', require('./routes/integrationConfig'));
+app.use('/integrations', require('./routes/integrations'));
 app.use('/api/crm', require('./routes/crm.routes'));
 app.use('/api/tasks', require('./routes/tasks.routes'));
 
