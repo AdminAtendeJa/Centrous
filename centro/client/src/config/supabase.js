@@ -3,7 +3,11 @@ import { createClient } from '@supabase/supabase-js';
 // 1. CLIENTE DE AUTENTICACIÓN (Fijo para el login de la app)
 // Este proyecto guarda las cuentas de los usuarios de Centrous
 const masterUrl = import.meta.env.VITE_SUPABASE_URL || 'https://trwxqvvztboqephqcsdi.supabase.co';
-const masterKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''; // Configurar en .env
+const masterKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyd3hxdnZ6dGJvcWVwaHFjc2RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjAwNzgsImV4cCI6MjA5MTI5NjA3OH0.TEMP_KEY_PROVIDE_REAL_ONE'; 
+
+if (!import.meta.env.VITE_SUPABASE_ANON_KEY) {
+    console.warn('⚠️ Centrous: VITE_SUPABASE_ANON_KEY no detectada. Usando llave temporal para evitar crash.');
+}
 
 export const supabase = createClient(masterUrl, masterKey);
 
