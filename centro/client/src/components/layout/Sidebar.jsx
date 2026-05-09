@@ -13,13 +13,13 @@ const NAV_ITEMS = [
     { to: '/productivity', icon: CheckSquare, label: 'Foco' },
     { type: 'divider' },
     { to: '/inbox', icon: MessageCircle, label: 'Inbox', badge: true },
-    { to: '/notion', icon: Folder, label: 'Notion', hideOnMobile: true },
-    { to: '/social', icon: Share2, label: 'Social', hideOnMobile: true },
-    { to: '/proposals', icon: Briefcase, label: 'Propostas', hideOnMobile: true },
+    { to: '/notion', icon: Folder, label: 'Notion' },
+    { to: '/social', icon: Share2, label: 'Social' },
+    { to: '/proposals', icon: Briefcase, label: 'Propostas' },
     { type: 'divider' },
-    { to: '/n8n', icon: Zap, label: 'Automacão', hideOnMobile: true },
-    { to: '/supabase-monitor', icon: Database, label: 'Dados', hideOnMobile: true },
-    { to: '/integrations', icon: Link, label: 'Conexões', hideOnMobile: true },
+    { to: '/n8n', icon: Zap, label: 'Automacão' },
+    { to: '/supabase-monitor', icon: Database, label: 'Dados' },
+    { to: '/integrations', icon: Link, label: 'Conexões' },
 ];
 
 export default function Sidebar() {
@@ -38,7 +38,7 @@ export default function Sidebar() {
                         <NavLink
                             key={item.to}
                             to={item.to}
-                            className={({ isActive }) => `nav-item-v3 ${isActive ? 'active' : ''} ${item.hideOnMobile ? 'hide-mobile' : ''}`}
+                            className={({ isActive }) => `nav-item-v3 ${isActive ? 'active' : ''}`}
                         >
                             <item.icon size={18} strokeWidth={2} />
                             {item.badge && <div className="nav-badge-v3" />}
@@ -47,6 +47,9 @@ export default function Sidebar() {
                     )
                 ))}
             </nav>
+
+            {/* Spacer for scroll flow on small screens */}
+            <div style={{ flex: 1, minHeight: '20px' }} />
 
             <div className="sidebar-footer-v3">
                 <NavLink to="/settings" className={({ isActive }) => `nav-item-v3 ${isActive ? 'active' : ''}`}>

@@ -249,7 +249,7 @@ export const useAnalyticsStore = create(
 export const useUIStore = create((set) => ({
     isDrawerExpanded: false,
     setIsDrawerExpanded: (val) => set({ isDrawerExpanded: val }),
-    isUtilityOpen: true,
+    isUtilityOpen: false,
     setIsUtilityOpen: (val) => set({ isUtilityOpen: val }),
     toggleUtility: () => set((s) => ({ isUtilityOpen: !s.isUtilityOpen })),
 }));
