@@ -1,4 +1,4 @@
-import { TrendingUp, CheckCircle2, Clock, Calendar, Users, ArrowRight, Plus, MoreHorizontal } from 'lucide-react';
+import { Activity, CheckCircle, Clock, Calendar, Users, ArrowRight, Plus, MoreHorizontal } from 'lucide-react';
 import { useCRMStore, useTasksStore } from '../../store/index.js';
 
 export default function Dashboard() {
@@ -46,7 +46,7 @@ export default function Dashboard() {
                 <div className="section-v3">
                     <div className="flex-between mb-4 px-1">
                         <div className="flex items-center gap-2">
-                            <CheckCircle2 size={16} className="text-accent" />
+                            <CheckCircle size={16} className="text-accent" />
                             <h2 className="text-13 font-bold text-primary">Tarefas de hoje</h2>
                         </div>
                         <button className="text-11 font-bold text-accent hover:underline flex items-center gap-1">
@@ -66,7 +66,7 @@ export default function Dashboard() {
                                 <div className={`w-5 h-5 rounded-full border-2 flex-center transition-all ${
                                     task.completed ? 'bg-emerald-500 border-emerald-500' : 'border-slate-200'
                                 }`}>
-                                    {task.completed && <CheckCircle2 size={12} className="text-white" />}
+                                    {task.completed && <CheckCircle size={12} className="text-white" />}
                                 </div>
                                 <span className={`text-12 font-medium flex-1 ${task.completed ? 'line-through text-tertiary' : 'text-primary'}`}>
                                     {task.title}
@@ -86,7 +86,7 @@ export default function Dashboard() {
                 <div className="section-v3">
                     <div className="flex-between mb-4 px-1">
                         <div className="flex items-center gap-2">
-                            <TrendingUp size={16} className="text-emerald-500" />
+                            <Activity size={16} className="text-emerald-500" />
                             <h2 className="text-13 font-bold text-primary">Projetos Ativos</h2>
                         </div>
                         <button className="btn-icon-v3"><Plus size={14} /></button>

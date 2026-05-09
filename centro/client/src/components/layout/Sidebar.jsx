@@ -1,13 +1,13 @@
 import { NavLink } from 'react-router-dom';
 import { 
-    LayoutDashboard, CheckSquare, BarChart, MessageCircle, 
-    Folder, Database, Users, Plug, Settings, Briefcase,
+    Grid, CheckSquare, BarChart, MessageCircle, 
+    Folder, Database, Users, Link, Settings, Briefcase,
     Zap, Share2, DollarSign
 } from 'lucide-react';
 import { useAuthStore } from '../../store/index.js';
 
 const NAV_ITEMS = [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'Painel' },
+    { to: '/dashboard', icon: Grid, label: 'Painel' },
     { to: '/crm', icon: Users, label: 'CRM' },
     { to: '/finance', icon: DollarSign, label: 'Finanças' },
     { to: '/productivity', icon: CheckSquare, label: 'Foco' },
@@ -19,7 +19,7 @@ const NAV_ITEMS = [
     { type: 'divider' },
     { to: '/n8n', icon: Zap, label: 'Automacão' },
     { to: '/supabase-monitor', icon: Database, label: 'Dados' },
-    { to: '/integrations', icon: Plug, label: 'Conexões' },
+    { to: '/integrations', icon: Link, label: 'Conexões' },
 ];
 
 export default function Sidebar() {
