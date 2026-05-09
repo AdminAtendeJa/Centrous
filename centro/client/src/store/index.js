@@ -246,10 +246,12 @@ export const useAnalyticsStore = create(
     )
 );
 
-// ── UI Store (Layout, Modals) ────────────────────────────────────────────────
 export const useUIStore = create((set) => ({
     isDrawerExpanded: false,
     setIsDrawerExpanded: (val) => set({ isDrawerExpanded: val }),
+    isUtilityOpen: true,
+    setIsUtilityOpen: (val) => set({ isUtilityOpen: val }),
+    toggleUtility: () => set((s) => ({ isUtilityOpen: !s.isUtilityOpen })),
 }));
 
 // ── Onboarding Store ─────────────────────────────────────────────────────────

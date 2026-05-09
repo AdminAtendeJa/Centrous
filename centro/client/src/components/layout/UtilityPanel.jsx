@@ -2,14 +2,15 @@ import { useState } from 'react';
 import { 
     MessageSquare, Calendar, Zap, MoreHorizontal, 
     Clock, CheckCircle2, Plus, ArrowUpRight,
-    FilePlus, StickyNote, Receipt, CalendarPlus, FileSignature, Kanban
+    FilePlus, StickyNote, Receipt, CalendarPlus, FileSignature, Kanban, X
 } from 'lucide-react';
-import { useCRMStore, useTasksStore } from '../../store/index.js';
+import { useCRMStore, useTasksStore, useUIStore } from '../../store/index.js';
 
 export default function UtilityPanel() {
     const [activeTab, setActiveTab] = useState('msgs');
     const { leads } = useCRMStore();
     const { tasks } = useTasksStore();
+    const { isUtilityOpen, toggleUtility } = useUIStore();
 
     // Mock data for Agenda
     const agendaItems = [
@@ -29,7 +30,7 @@ export default function UtilityPanel() {
     ];
 
     return (
-        <aside className="utility-panel-v3">
+        <aside className={`utility-panel-v3 ${isUtilityOpen ? 'open' : ''}`}>
             <div className="panel-tabs-v3">
                 <div 
                     className={`panel-tab-v3 ${activeTab === 'msgs' ? 'active' : ''}`}
@@ -49,6 +50,14 @@ export default function UtilityPanel() {
                 >
                     Ações
                 </div>
+                
+                <button 
+                    className="ml-auto btn-icon-v3 lg:hidden" 
+                    onClick={toggleUtility}
+                    style={{ border: 'none', background: 'transparent' }}
+                >
+                    <X size={18} />
+                </button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
