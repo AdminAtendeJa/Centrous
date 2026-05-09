@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Activity, TrendingUp, AlertTriangle, CheckCircle2, Zap, Settings, ArrowRight, Loader2 } from 'lucide-react';
-import { useSettingsStore, useAnalyticsStore } from '../../../store/index';
+import { useSettingsStore, useAnalyticsStore } from '../../store/index';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import './MetaAds.css';

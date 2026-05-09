@@ -223,7 +223,7 @@ Formato:
                                                 <div key={i} style={{ 
                                                     flex: 1, 
                                                     background: 'var(--color-primary)', 
-                                                    height: \`\${Math.random() * 80 + 20}%\`,
+                                                    height: `${Math.random() * 80 + 20}%`,
                                                     borderRadius: '4px 4px 0 0',
                                                     opacity: 0.7 + (Math.random() * 0.3)
                                                 }} />
@@ -242,10 +242,10 @@ Formato:
                 </div>
             )}
 
-            <style dangerouslySetInnerHTML={{__html: \`
+            <style dangerouslySetInnerHTML={{__html: `
                 @keyframes spin { 100% { transform: rotate(360deg); } }
                 .ai-spin { animation: spin 1s linear infinite; }
-            \`}} />
+            `}} />
         </div>
     );
 }
