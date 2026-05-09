@@ -1,17 +1,22 @@
 const express = require('express');
 const supabase = require('../config/supabase');
+const authMiddleware = require('../middleware/auth.middleware');
 
 const router = express.Router();
 
+// Aplicar middleware de autenticación a todas las rutas de CRM
+router.use(authMiddleware);
+
 /**
  * @route GET /api/crm/leads
- * @desc Obtiene todos los leads usando Supabase
+ * @desc Obtiene los leads del usuario autenticado
  */
 router.get('/leads', async (req, res) => {
     try {
         const { data: leads, error } = await supabase
             .from('leads')
             .select('*')
+            .eq('user_id', req.user.id) // Filtrar por usuario
             .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -24,7 +29,7 @@ router.get('/leads', async (req, res) => {
 
 /**
  * @route POST /api/crm/leads
- * @desc Crea un nuevo lead (Endpoint para webhooks) y lo guarda en Supabase
+ * @desc Crea un nuevo lead vinculado al usuario autenticado
  */
 router.post('/leads', async (req, res) => {
     const { name, company, value, stage, channel, notes } = req.body;
@@ -40,7 +45,8 @@ router.post('/leads', async (req, res) => {
             value: value || 0,
             stage: stage || 'new',
             channel: channel || 'API',
-            notes: notes || ''
+            notes: notes || '',
+            user_id: req.user.id // Vincular al usuario
         };
 
         const { data: insertedLead, error } = await supabase
@@ -51,10 +57,10 @@ router.post('/leads', async (req, res) => {
 
         if (error) throw error;
 
-        // Emitimos al frontend
+        // Emitimos al frontend solo al usuario correspondiente
         const io = req.app.get('io');
         if (io) {
-            io.emit('crm:lead_created', insertedLead);
+            io.to(`user:${req.user.id}`).emit('crm:lead_created', insertedLead);
         }
 
         res.status(201).json({ success: true, lead: insertedLead });
@@ -66,7 +72,7 @@ router.post('/leads', async (req, res) => {
 
 /**
  * @route PUT /api/crm/leads/:id
- * @desc Actualiza un lead en Supabase
+ * @desc Actualiza un lead (asegurando pertenencia)
  */
 router.put('/leads/:id', async (req, res) => {
     const { id } = req.params;
@@ -77,6 +83,7 @@ router.put('/leads/:id', async (req, res) => {
             .from('leads')
             .update(updates)
             .eq('id', id)
+            .eq('user_id', req.user.id) // Seguridad extra
             .select()
             .single();
 
@@ -84,7 +91,7 @@ router.put('/leads/:id', async (req, res) => {
 
         const io = req.app.get('io');
         if (io) {
-            io.emit('crm:lead_updated', updatedLead);
+            io.to(`user:${req.user.id}`).emit('crm:lead_updated', updatedLead);
         }
 
         res.json({ success: true, lead: updatedLead });
@@ -96,7 +103,7 @@ router.put('/leads/:id', async (req, res) => {
 
 /**
  * @route DELETE /api/crm/leads/:id
- * @desc Elimina un lead en Supabase
+ * @desc Elimina un lead (asegurando pertenencia)
  */
 router.delete('/leads/:id', async (req, res) => {
     const { id } = req.params;
@@ -105,13 +112,14 @@ router.delete('/leads/:id', async (req, res) => {
         const { error } = await supabase
             .from('leads')
             .delete()
-            .eq('id', id);
+            .eq('id', id)
+            .eq('user_id', req.user.id); // Seguridad extra
 
         if (error) throw error;
 
         const io = req.app.get('io');
         if (io) {
-            io.emit('crm:lead_deleted', { id });
+            io.to(`user:${req.user.id}`).emit('crm:lead_deleted', { id });
         }
 
         res.json({ success: true, message: 'Lead eliminado' });

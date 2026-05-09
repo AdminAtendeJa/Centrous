@@ -4,6 +4,7 @@ import { Plus, Trash2, Edit3, X, Check, MessageSquare, User, AtSign, Phone, Mail
 import { useCRMStore, useUIStore } from '../../store/index.js';
 
 import { KanbanBoard } from '../../components/crm/KanbanBoard.jsx';
+import { AutomationTriggers } from '../../components/crm/AutomationTriggers.jsx';
 
 const STAGES = [
     { id: 'new', label: '🆕 Nuevo', color: 'var(--color-info)' },
@@ -42,21 +43,26 @@ function LeadDrawer({ leadId, onClose, initialExpanded = false }) {
     else if (lead.channel === 'LinkedIn') { themeColor = '#0077b5'; channelIcon = <User size={16} />; }
     else if (lead.channel === 'Email') { themeColor = '#EA4335'; channelIcon = <Mail size={16} />; }
 
-    // Generar conversación simulada basada en el origen del lead si no tiene historial
-    const defaultMessages = [
-        { sender: 'lead', text: `Hola, me comunico por ${lead.channel}. Estoy interesado en sus servicios para mi empresa ${lead.company || ''}.`, time: '10:00', id: 'm1' },
-        { sender: 'bot', text: `¡Hola ${lead.name}! Gracias por contactar a AtendeJá. Claro, ¿qué tipo de automatizaciones buscan implementar?`, time: '10:01', id: 'm2' },
+    // Generar timeline unificado simulado (Feed 360)
+    const timeline = [
+        { type: 'system', text: 'Lead creado vía Integración API', time: '09:50', id: 't1' },
+        { type: 'chat', sender: 'lead', text: `Hola, me comunico por ${lead.channel}. Estoy interesado en sus servicios para mi empresa ${lead.company || ''}.`, time: '10:00', id: 'm1' },
+        { type: 'chat', sender: 'bot', text: `¡Hola ${lead.name}! Gracias por contactar a Centrous. Claro, ¿qué tipo de automatizaciones buscan implementar?`, time: '10:01', id: 'm2' },
+        { type: 'system', text: 'Etapa cambiada de "Nuevo" a "Calificado"', time: '10:02', id: 't2' }
     ];
 
     if (lead.notes) {
-        defaultMessages.push({ sender: 'lead', text: lead.notes, time: '10:05', id: 'm3' });
+        timeline.push({ type: 'note', text: lead.notes, time: '10:05', id: 'm3' });
     }
-
-    const messages = lead.messages && lead.messages.length > 0 ? lead.messages : defaultMessages;
+    
+    // Anexamos los mensajes reales si existen
+    if (lead.messages && lead.messages.length > 0) {
+        lead.messages.forEach(m => timeline.push({ type: 'chat', ...m }));
+    }
 
     const handleSend = () => {
         if (!draft.trim()) return;
-        addLeadMessage(lead.id, { sender: 'bot', text: draft.trim() });
+        addLeadMessage(lead.id, { sender: 'bot', text: draft.trim(), time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) });
         setDraft('');
     };
 
@@ -70,7 +76,7 @@ function LeadDrawer({ leadId, onClose, initialExpanded = false }) {
                         </div>
                         <div>
                             <div style={{ fontWeight: 700, fontSize: 16 }}>{lead.name}</div>
-                            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Perfil del CRM</div>
+                            <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Perfil 360°</div>
                         </div>
                     </div>
                     <div>
@@ -83,7 +89,7 @@ function LeadDrawer({ leadId, onClose, initialExpanded = false }) {
 
                 <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
                     {/* LEFT PANEL: Lead Details */}
-                    <div style={{ width: '260px', borderRight: '1px solid var(--color-border)', padding: '20px 16px', overflowY: 'auto', background: 'var(--color-surface)' }}>
+                    <div style={{ width: '280px', borderRight: '1px solid var(--color-border)', padding: '20px 16px', overflowY: 'auto', background: 'var(--color-surface)' }}>
                         <div className="section-title">Información Principal</div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
                             <div>
@@ -111,25 +117,51 @@ function LeadDrawer({ leadId, onClose, initialExpanded = false }) {
                             {STAGES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
                         </select>
 
-                        <div className="section-title">Notas Internas</div>
-                        <textarea
-                            value={lead.notes || ''}
-                            onChange={(e) => updateLead(lead.id, { notes: e.target.value })}
-                            placeholder="Añade notas del CRM..."
-                            rows={4}
-                            style={{ fontSize: 12, lineHeight: 1.5 }}
-                        />
+                        <div className="section-title">Etiquetas (Tags)</div>
+                        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', marginBottom: 24 }}>
+                            {(lead.tags || ['B2B', 'Alta Prioridad']).map(tag => (
+                                <span key={tag} style={{ background: 'rgba(124, 58, 237, 0.1)', color: '#a78bfa', padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600 }}>#{tag}</span>
+                            ))}
+                            <button style={{ background: 'var(--color-surface-3)', border: 'none', borderRadius: 4, padding: '2px 8px', fontSize: 11, color: 'var(--text-muted)', cursor: 'pointer' }}>+ Añadir</button>
+                        </div>
+
+                        <div className="section-title">Tareas Asignadas</div>
+                        <div style={{ background: 'var(--color-surface-2)', padding: 12, borderRadius: 8, fontSize: 12, marginBottom: 24 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                                <input type="checkbox" />
+                                <span>Llamar para calificar presupuesto</span>
+                            </div>
+                            <button style={{ color: 'var(--color-primary-light)', background: 'none', border: 'none', fontSize: 11, cursor: 'pointer', padding: 0 }}>+ Nueva Tarea</button>
+                        </div>
                     </div>
 
-                    {/* RIGHT PANEL: Chat Feed */}
+                    {/* RIGHT PANEL: 360 Unified Feed */}
                     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--color-surface-2)', position: 'relative' }}>
                         <div className="drawer-content" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                            <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', margin: '10px 0' }}>Historial del Cliente</div>
+                            <div style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', margin: '10px 0' }}>Hoy</div>
 
-                            {messages.map((msg, i) => {
-                                const isLead = msg.sender === 'lead';
+                            {timeline.map((item, i) => {
+                                if (item.type === 'system') {
+                                    return (
+                                        <div key={item.id} style={{ textAlign: 'center', fontSize: 11, color: 'var(--text-muted)', margin: '4px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                                            <div style={{ height: 1, background: 'var(--color-border)', flex: 1, maxWidth: 30 }} />
+                                            {item.time} - {item.text}
+                                            <div style={{ height: 1, background: 'var(--color-border)', flex: 1, maxWidth: 30 }} />
+                                        </div>
+                                    );
+                                }
+
+                                if (item.type === 'note') {
+                                    return (
+                                        <div key={item.id} style={{ alignSelf: 'center', background: 'rgba(234, 179, 8, 0.1)', border: '1px solid rgba(234, 179, 8, 0.2)', padding: '8px 12px', borderRadius: 8, fontSize: 12, color: '#eab308', width: '80%' }}>
+                                            <strong>Nota interna ({item.time}):</strong> {item.text}
+                                        </div>
+                                    );
+                                }
+
+                                const isLead = item.sender === 'lead';
                                 return (
-                                    <div key={msg.id || i} style={{
+                                    <div key={item.id || i} style={{
                                         alignSelf: isLead ? 'flex-start' : 'flex-end',
                                         maxWidth: '90%',
                                         display: 'flex',
@@ -146,27 +178,33 @@ function LeadDrawer({ leadId, onClose, initialExpanded = false }) {
                                             lineHeight: 1.5,
                                             boxShadow: 'var(--shadow-sm)'
                                         }}>
-                                            {msg.text}
+                                            {item.text}
                                         </div>
-                                        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{msg.time}</span>
+                                        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>{item.time}</span>
                                     </div>
                                 );
                             })}
                         </div>
 
                         <div style={{ padding: '16px 20px', borderTop: '1px solid var(--color-border)', background: 'var(--color-bg)' }}>
+                            <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                                <button style={{ background: 'var(--color-surface-3)', border: 'none', borderRadius: 4, padding: '4px 12px', fontSize: 11, cursor: 'pointer', fontWeight: 600 }}>Chat</button>
+                                <button style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer' }}>Nota Interna</button>
+                            </div>
                             <div style={{ position: 'relative', display: 'flex', gap: 10 }}>
                                 <input
                                     value={draft}
                                     onChange={(e) => setDraft(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                                    placeholder={`Enviar mensaje por ${lead.channel}...`}
-                                    style={{ borderRadius: '24px', flex: 1 }}
+                                    placeholder="Escribe un mensaje..."
+                                    style={{ flex: 1, padding: '12px 16px', borderRadius: 24, border: '1px solid var(--color-border)', background: 'var(--color-surface)', fontSize: 14 }}
                                 />
                                 <button
-                                    className="btn"
                                     onClick={handleSend}
-                                    style={{ background: themeColor, color: '#fff', padding: '0 16px', borderRadius: '24px', fontSize: 12, fontWeight: 700, border: 'none' }}
+                                    style={{
+                                        width: 44, height: 44, borderRadius: '50%', background: themeColor,
+                                        color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                    }}
                                 >
                                     Responder Lead
                                 </button>
@@ -313,6 +351,7 @@ export default function CRM() {
             </div>
 
             {/* Kanban Board V3 */}
+            <AutomationTriggers stages={STAGES} />
             <KanbanBoard
                 stages={STAGES}
                 leads={leads}

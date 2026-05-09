@@ -98,9 +98,34 @@ export default function Onboarding() {
         });
     };
 
-    const handleFinish = () => {
+    const handleFinish = async () => {
+        const profile = { userName, profession, apps: [...selectedApps], clientTier };
+        
         updateSettings({ ownerName: userName || 'Usuario' });
-        completeOnboarding({ userName, profession, apps: [...selectedApps], clientTier });
+        completeOnboarding(profile);
+
+        // Sync with backend
+        const token = useAuthStore.getState().session?.access_token;
+        if (token) {
+            try {
+                await fetch('/api/user/profile', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        name: userName,
+                        profession,
+                        apps: [...selectedApps],
+                        client_tier: clientTier
+                    })
+                });
+            } catch (err) {
+                console.error('Error syncing profile:', err);
+            }
+        }
+
         setExiting(true);
         setTimeout(() => navigate('/dashboard', { replace: true }), 400);
     };

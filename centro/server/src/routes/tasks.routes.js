@@ -1,17 +1,22 @@
 const express = require('express');
 const supabase = require('../config/supabase');
+const authMiddleware = require('../middleware/auth.middleware');
 
 const router = express.Router();
 
+// Aplicar middleware de autenticación a todas las rutas de Tareas
+router.use(authMiddleware);
+
 /**
  * @route GET /api/tasks
- * @desc Obtiene todas las tareas de la base de datos Supabase
+ * @desc Obtiene todas las tareas del usuario autenticado
  */
 router.get('/', async (req, res) => {
     try {
         const { data: tasks, error } = await supabase
             .from('tasks')
             .select('*')
+            .eq('user_id', req.user.id) // Filtrar por usuario
             .order('created_at', { ascending: false });
 
         if (error) throw error;
@@ -24,7 +29,7 @@ router.get('/', async (req, res) => {
 
 /**
  * @route POST /api/tasks
- * @desc Crea una nueva tarea en Supabase
+ * @desc Crea una nueva tarea vinculada al usuario autenticado
  */
 router.post('/', async (req, res) => {
     const { text, priority } = req.body;
@@ -37,7 +42,8 @@ router.post('/', async (req, res) => {
         const newTaskData = {
             text,
             done: false,
-            priority: priority || 'medium'
+            priority: priority || 'medium',
+            user_id: req.user.id // Vincular al usuario
         };
 
         const { data: insertedTask, error } = await supabase
@@ -50,7 +56,7 @@ router.post('/', async (req, res) => {
 
         const io = req.app.get('io');
         if (io) {
-            io.emit('tasks:created', insertedTask);
+            io.to(`user:${req.user.id}`).emit('tasks:created', insertedTask);
         }
 
         res.status(201).json({ success: true, task: insertedTask });
@@ -62,7 +68,7 @@ router.post('/', async (req, res) => {
 
 /**
  * @route PUT /api/tasks/:id
- * @desc Actualiza una tarea temporal (done/undone, priority, etc)
+ * @desc Actualiza una tarea asegurando pertenencia
  */
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
@@ -73,6 +79,7 @@ router.put('/:id', async (req, res) => {
             .from('tasks')
             .update(updates)
             .eq('id', id)
+            .eq('user_id', req.user.id) // Seguridad extra
             .select()
             .single();
 
@@ -80,7 +87,7 @@ router.put('/:id', async (req, res) => {
 
         const io = req.app.get('io');
         if (io) {
-            io.emit('tasks:updated', updatedTask);
+            io.to(`user:${req.user.id}`).emit('tasks:updated', updatedTask);
         }
 
         res.json({ success: true, task: updatedTask });
@@ -92,7 +99,7 @@ router.put('/:id', async (req, res) => {
 
 /**
  * @route DELETE /api/tasks/:id
- * @desc Elimina permanentemente una tarea en Supabase
+ * @desc Elimina permanentemente una tarea asegurando pertenencia
  */
 router.delete('/:id', async (req, res) => {
     const { id } = req.params;
@@ -101,13 +108,14 @@ router.delete('/:id', async (req, res) => {
         const { error } = await supabase
             .from('tasks')
             .delete()
-            .eq('id', id);
+            .eq('id', id)
+            .eq('user_id', req.user.id); // Seguridad extra
 
         if (error) throw error;
 
         const io = req.app.get('io');
         if (io) {
-            io.emit('tasks:deleted', { id });
+            io.to(`user:${req.user.id}`).emit('tasks:deleted', { id });
         }
 
         res.json({ success: true, message: 'Tarea eliminada' });

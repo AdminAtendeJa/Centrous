@@ -15,21 +15,26 @@ export function KanbanColumn({ stage, leads, onLeadClick, onLeadDoubleClick, onD
     return (
         <div style={{ minWidth: 260, display: 'flex', flexDirection: 'column' }}>
             {/* Header Column */}
-            <div className="flex-between" style={{ marginBottom: 12, padding: '0 4px' }}>
-                <span style={{ fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: stage.color || 'var(--text-muted)' }} />
-                    {stage.label}
-                </span>
-                <span style={{
-                    background: 'var(--color-surface-3)',
-                    color: 'var(--text-primary)',
-                    borderRadius: 99,
-                    padding: '2px 10px',
-                    fontSize: 11,
-                    fontWeight: 700
-                }}>
-                    {leads.length}
-                </span>
+            <div style={{ marginBottom: 12, padding: '0 4px' }}>
+                <div className="flex-between" style={{ marginBottom: 4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: stage.color || 'var(--text-muted)' }} />
+                        {stage.label}
+                    </span>
+                    <span style={{
+                        background: 'var(--color-surface-3)',
+                        color: 'var(--text-primary)',
+                        borderRadius: 99,
+                        padding: '2px 10px',
+                        fontSize: 11,
+                        fontWeight: 700
+                    }}>
+                        {leads.length}
+                    </span>
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                    ${leads.reduce((sum, lead) => sum + (lead.value || 0), 0).toLocaleString()}
+                </div>
             </div>
 
             {/* Droppable Area */}

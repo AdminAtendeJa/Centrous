@@ -3,36 +3,59 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import Sidebar from './components/layout/Sidebar.jsx';
 import ErrorBoundary from './components/ui/ErrorBoundary.jsx';
-import Dashboard from './pages/Dashboard/Dashboard.jsx';
-import NotionHub from './pages/NotionHub/NotionHub.jsx';
-import N8nMonitor from './pages/N8nMonitor/N8nMonitor.jsx';
-import SocialMedia from './pages/SocialMedia/SocialMedia.jsx';
-import CRM from './pages/CRM/CRM.jsx';
-import Proposals from './pages/Proposals/Proposals.jsx';
-import Productivity from './pages/Productivity/Productivity.jsx';
-import Finance from './pages/Finance/Finance.jsx';
-import Settings from './pages/Settings/Settings.jsx';
-import Onboarding from './pages/Onboarding/Onboarding.jsx';
-import Inbox from './pages/Inbox/Inbox.jsx';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef, Suspense, lazy } from 'react';
 import { io } from 'socket.io-client';
-import { useCRMStore, useUIStore, useOnboardingStore, useTasksStore } from './store/index.js';
+import { useCRMStore, useUIStore, useOnboardingStore, useTasksStore, useAuthStore, useAnalyticsStore } from './store/index.js';
 import Copilot from './components/ui/Copilot.jsx';
+import { supabase } from './config/supabase';
 
-// Conectar al backend (proxy bypass o directo al puerto del server Express)
-const socket = io('/', { path: '/socket.io' }); // Vite hace el proxy si está configurado, o usamos directo el puerto de express si no.
-// Debido a que Vite (5173) hace proxy hacia (3001), usamos localhost:3001 directo para el WebSocket
-const wsUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '/';
-const socketClient = io(wsUrl);
+// Lazy loading for extreme optimization
+const Dashboard = lazy(() => import('./pages/Dashboard/Dashboard.jsx'));
+const SupabaseMonitor = lazy(() => import('./pages/SupabaseMonitor/SupabaseMonitor.jsx'));
+const Integrations = lazy(() => import('./pages/Integrations/Integrations.jsx'));
+const NotionHub = lazy(() => import('./pages/NotionHub/NotionHub.jsx'));
+const N8nMonitor = lazy(() => import('./pages/N8nMonitor/N8nMonitor.jsx'));
+const SocialMedia = lazy(() => import('./pages/SocialMedia/SocialMedia.jsx'));
+const CRM = lazy(() => import('./pages/CRM/CRM.jsx'));
+const Proposals = lazy(() => import('./pages/Proposals/Proposals.jsx'));
+const Productivity = lazy(() => import('./pages/Productivity/Productivity.jsx'));
+const Finance = lazy(() => import('./pages/Finance/Finance.jsx'));
+const Settings = lazy(() => import('./pages/Settings/Settings.jsx'));
+const Onboarding = lazy(() => import('./pages/Onboarding/Onboarding.jsx'));
+const Inbox = lazy(() => import('./pages/Inbox/Inbox.jsx'));
+const Auth = lazy(() => import('./pages/Auth/Auth.jsx'));
+const MetaAds = lazy(() => import('./pages/Marketing/MetaAds.jsx'));
+
+function LocationTracker() {
+    const location = useLocation();
+    const logVisit = useAnalyticsStore(s => s.logVisit);
+
+    useEffect(() => {
+        logVisit(location.pathname);
+    }, [location.pathname, logVisit]);
+
+    return null;
+}
 
 function SocketManager() {
     const { addLead, addLeadMessage } = useCRMStore();
+    const { user, session } = useAuthStore();
+    const socketRef = useRef(null);
 
     useEffect(() => {
+        if (!session?.access_token) return;
+
+        // Conectar al backend con el token
+        const wsUrl = window.location.hostname === 'localhost' ? 'http://localhost:3001' : '/';
+        const socket = io(wsUrl, {
+            auth: { token: session.access_token }
+        });
+        
+        socketRef.current = socket;
+
         const handleMessage = (payload) => {
             console.log('📬 Nuevo mensaje en tiempo real:', payload);
-            const { leads } = useCRMStore.getState(); // Fetch actual sin suscribirse
-
+            const { leads } = useCRMStore.getState();
             const existingLead = leads.find(l => l.id === payload.leadId || l.name === payload.senderName);
 
             if (existingLead) {
@@ -49,18 +72,22 @@ function SocketManager() {
                 });
             }
 
-            // Reproducir sonido de notificación suave
             try {
-                // Short pop sound
                 const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
                 audio.volume = 0.5;
                 audio.play();
             } catch (e) { }
         };
 
-        socketClient.on('chat:message', handleMessage);
-        return () => socketClient.off('chat:message', handleMessage);
-    }, [addLead, addLeadMessage]);
+        socket.on('chat:message', handleMessage);
+        socket.on('crm:lead_created', (lead) => useCRMStore.getState().fetchLeads());
+        socket.on('crm:lead_updated', (lead) => useCRMStore.getState().fetchLeads());
+        socket.on('tasks:created', (task) => useTasksStore.getState().fetchTasks());
+
+        return () => {
+            socket.disconnect();
+        };
+    }, [session, addLead, addLeadMessage]);
 
     return null;
 }
@@ -91,13 +118,41 @@ function AnimatedRoutes() {
     const location = useLocation();
     const isDrawerExpanded = useUIStore(s => s.isDrawerExpanded);
     const onboardingCompleted = useOnboardingStore(s => s.onboardingCompleted);
+    const { user, session, setSession, setUser } = useAuthStore();
 
+    // Manejar estado de sesión de Supabase
     useEffect(() => {
-        if (onboardingCompleted) {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            setUser(session?.user || null);
+        });
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+            setUser(session?.user || null);
+        });
+
+        return () => subscription.unsubscribe();
+    }, [setSession, setUser]);
+
+    // Fetch inicial cuando el usuario está autenticado y onboarding listo
+    useEffect(() => {
+        if (user && onboardingCompleted) {
             useCRMStore.getState().fetchLeads();
             useTasksStore.getState().fetchTasks();
         }
-    }, [onboardingCompleted]);
+    }, [user, onboardingCompleted]);
+
+    if (!session) {
+        return (
+            <AnimatePresence mode="wait">
+                <Routes location={location} key="auth">
+                    <Route path="/auth" element={<Auth />} />
+                    <Route path="*" element={<Navigate to="/auth" replace />} />
+                </Routes>
+            </AnimatePresence>
+        );
+    }
 
     return (
         <AnimatePresence mode="wait">
@@ -114,20 +169,25 @@ function AnimatedRoutes() {
                     <Sidebar />
                     <main className="page-content">
                         <ErrorBoundary dropoff={true}>
-                            <Routes location={location} key={location.pathname}>
-                                <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                                <Route path="/dashboard" element={<PageWrapper><Dashboard /></PageWrapper>} />
-                                <Route path="/notion" element={<PageWrapper><NotionHub /></PageWrapper>} />
-                                <Route path="/n8n" element={<PageWrapper><N8nMonitor /></PageWrapper>} />
-                                <Route path="/social" element={<PageWrapper><SocialMedia /></PageWrapper>} />
-                                <Route path="/crm" element={<PageWrapper><CRM /></PageWrapper>} />
-                                <Route path="/inbox" element={<PageWrapper><Inbox /></PageWrapper>} />
-                                <Route path="/proposals" element={<PageWrapper><Proposals /></PageWrapper>} />
-                                <Route path="/productivity" element={<PageWrapper><Productivity /></PageWrapper>} />
-                                <Route path="/finance" element={<PageWrapper><Finance /></PageWrapper>} />
-                                <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
-                                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                            </Routes>
+                            <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%', color: 'var(--text-muted)' }}><div className="loading-spinner" /></div>}>
+                                <Routes location={location} key={location.pathname}>
+                                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                    <Route path="/dashboard" element={<PageWrapper><Dashboard /></PageWrapper>} />
+                                    <Route path="/supabase-monitor" element={<PageWrapper><SupabaseMonitor /></PageWrapper>} />
+                                    <Route path="/integrations" element={<PageWrapper><Integrations /></PageWrapper>} />
+                                    <Route path="/notion" element={<PageWrapper><NotionHub /></PageWrapper>} />
+                                    <Route path="/n8n" element={<PageWrapper><N8nMonitor /></PageWrapper>} />
+                                    <Route path="/social" element={<PageWrapper><SocialMedia /></PageWrapper>} />
+                                    <Route path="/crm" element={<PageWrapper><CRM /></PageWrapper>} />
+                                    <Route path="/meta-ads" element={<PageWrapper><MetaAds /></PageWrapper>} />
+                                    <Route path="/inbox" element={<PageWrapper><Inbox /></PageWrapper>} />
+                                    <Route path="/proposals" element={<PageWrapper><Proposals /></PageWrapper>} />
+                                    <Route path="/productivity" element={<PageWrapper><Productivity /></PageWrapper>} />
+                                    <Route path="/finance" element={<PageWrapper><Finance /></PageWrapper>} />
+                                    <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
+                                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                                </Routes>
+                            </Suspense>
                         </ErrorBoundary>
                     </main>
                 </div>
@@ -139,6 +199,7 @@ function AnimatedRoutes() {
 export default function App() {
     return (
         <BrowserRouter>
+            <LocationTracker />
             <Toaster position="top-right" toastOptions={{
                 duration: 4000,
                 style: {

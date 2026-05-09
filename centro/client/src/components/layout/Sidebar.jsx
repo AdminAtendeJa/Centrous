@@ -18,7 +18,10 @@ const NAV_ITEMS = [
         label: 'Herramientas', items: [
             { to: '/notion', icon: FileText, label: 'Notion Hub' },
             { to: '/n8n', icon: Workflow, label: 'n8n Monitor' },
-            { to: '/social', icon: BarChart2, label: 'Redes & Anuncios' },
+            { to: '/supabase-monitor', icon: Zap, label: 'Supabase Monitor' },
+            { to: '/integrations', icon: Settings, label: 'Integraciones API' },
+            { to: '/social', icon: BarChart2, label: 'Redes Sociales' },
+            { to: '/meta-ads', icon: Zap, label: 'Meta Ads' },
         ]
     },
     {

@@ -36,16 +36,26 @@ export const useCRMStore = create(
         (set, get) => ({
             leads: [],
             fetchLeads: async () => {
+                const token = useAuthStore.getState().session?.access_token;
+                if (!token) return;
                 try {
-                    const res = await fetch('http://localhost:3001/api/crm/leads');
+                    const res = await fetch('/api/crm/leads', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
                     const data = await res.json();
                     if (data.success) set({ leads: data.leads });
                 } catch (err) { console.error(err); }
             },
             addLead: async (lead) => {
+                const token = useAuthStore.getState().session?.access_token;
+                if (!token) return;
                 try {
-                    const res = await fetch('http://localhost:3001/api/crm/leads', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    const res = await fetch('/api/crm/leads', {
+                        method: 'POST', 
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         body: JSON.stringify(lead)
                     });
                     const data = await res.json();
@@ -53,9 +63,15 @@ export const useCRMStore = create(
                 } catch (err) { console.error(err); }
             },
             updateLead: async (id, payload) => {
+                const token = useAuthStore.getState().session?.access_token;
+                if (!token) return;
                 try {
-                    await fetch(`http://localhost:3001/api/crm/leads/${id}`, {
-                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    await fetch(`/api/crm/leads/${id}`, {
+                        method: 'PUT', 
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         body: JSON.stringify(payload)
                     });
                     get().fetchLeads();
@@ -66,8 +82,13 @@ export const useCRMStore = create(
                 }
             },
             deleteLead: async (id) => {
+                const token = useAuthStore.getState().session?.access_token;
+                if (!token) return;
                 try {
-                    await fetch(`http://localhost:3001/api/crm/leads/${id}`, { method: 'DELETE' });
+                    await fetch(`/api/crm/leads/${id}`, { 
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
                     set((s) => ({ leads: s.leads.filter((l) => l.id !== id) }));
                     toast.success('Lead eliminado');
                 } catch (err) {
@@ -76,11 +97,16 @@ export const useCRMStore = create(
                 }
             },
             moveLead: async (id, stage) => {
+                const token = useAuthStore.getState().session?.access_token;
+                if (!token) return;
                 try {
-                    // Update state optimistically immediately
                     set((s) => ({ leads: s.leads.map((l) => (l.id === id ? { ...l, stage } : l)) }));
-                    await fetch(`http://localhost:3001/api/crm/leads/${id}`, {
-                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    await fetch(`/api/crm/leads/${id}`, {
+                        method: 'PUT', 
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         body: JSON.stringify({ stage })
                     });
                     toast.success('Etapa actualizada');
@@ -127,16 +153,26 @@ export const useTasksStore = create(
         (set, get) => ({
             tasks: [],
             fetchTasks: async () => {
+                const token = useAuthStore.getState().session?.access_token;
+                if (!token) return;
                 try {
-                    const res = await fetch('http://localhost:3001/api/tasks');
+                    const res = await fetch('/api/tasks', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
                     const data = await res.json();
                     if (data.success) set({ tasks: data.tasks });
                 } catch (err) { console.error(err); }
             },
             addTask: async (t) => {
+                const token = useAuthStore.getState().session?.access_token;
+                if (!token) return;
                 try {
-                    const res = await fetch('http://localhost:3001/api/tasks', {
-                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    const res = await fetch('/api/tasks', {
+                        method: 'POST', 
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         body: JSON.stringify(t)
                     });
                     const data = await res.json();
@@ -144,21 +180,32 @@ export const useTasksStore = create(
                 } catch (err) { console.error(err); }
             },
             toggleTask: async (id) => {
+                const token = useAuthStore.getState().session?.access_token;
+                if (!token) return;
                 try {
                     const task = get().tasks.find((t) => t.id === id);
                     if (!task) return;
 
                     set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) }));
 
-                    await fetch(`http://localhost:3001/api/tasks/${id}`, {
-                        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    await fetch(`/api/tasks/${id}`, {
+                        method: 'PUT', 
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
                         body: JSON.stringify({ done: !task.done })
                     });
                 } catch (err) { console.error(err); }
             },
             deleteTask: async (id) => {
+                const token = useAuthStore.getState().session?.access_token;
+                if (!token) return;
                 try {
-                    await fetch(`http://localhost:3001/api/tasks/${id}`, { method: 'DELETE' });
+                    await fetch(`/api/tasks/${id}`, { 
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
                     set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) }));
                 } catch (err) { console.error(err); }
             },
@@ -184,6 +231,32 @@ export const useNotesStore = create(
         { name: 'centro-notes' }
     )
 );
+
+// ── Analytics Store (AI Telemetry) ──────────────────────────────────────────
+export const useAnalyticsStore = create(
+    persist(
+        (set, get) => ({
+            moduleVisits: {}, 
+            actionLogs: [], 
+            
+            logVisit: (path) => set((state) => {
+                const visits = { ...state.moduleVisits };
+                visits[path] = (visits[path] || 0) + 1;
+                return { moduleVisits: visits };
+            }),
+
+            logAction: (action, data = {}) => set((state) => {
+                const newLog = { action, data, time: new Date().toISOString() };
+                const updatedLogs = [newLog, ...state.actionLogs].slice(0, 50);
+                return { actionLogs: updatedLogs };
+            }),
+
+            clearAnalytics: () => set({ moduleVisits: {}, actionLogs: [] })
+        }),
+        { name: 'centro-analytics' }
+    )
+);
+
 // ── UI Store (Layout, Modals) ────────────────────────────────────────────────
 export const useUIStore = create((set) => ({
     isDrawerExpanded: false,
@@ -207,6 +280,25 @@ export const useOnboardingStore = create(
                 set({ onboardingCompleted: false, profile: { userName: '', profession: null, apps: [], clientTier: null } }),
         }),
         { name: 'centro-onboarding' }
+    )
+);
+
+// ── Auth Store ──────────────────────────────────────────────────────────────
+export const useAuthStore = create(
+    persist(
+        (set) => ({
+            user: null,
+            session: null,
+            isLoading: true,
+            setUser: (user) => set({ user }),
+            setSession: (session) => set({ session, isLoading: false }),
+            signOut: async () => {
+                const { supabase } = await import('../config/supabase');
+                await supabase.auth.signOut();
+                set({ user: null, session: null });
+            },
+        }),
+        { name: 'centro-auth' }
     )
 );
 

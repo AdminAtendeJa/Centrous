@@ -41,7 +41,7 @@ export function LeadCard({ lead, onClick, onDoubleClick, onDelete, onEdit }) {
 
             <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 8, pointerEvents: 'none' }}>{lead.company}</div>
 
-            <div className="flex-between" style={{ pointerEvents: 'none' }}>
+            <div className="flex-between" style={{ pointerEvents: 'none', marginBottom: lead.tags?.length ? 8 : 0 }}>
                 <span className="badge badge-muted" style={{ fontSize: 10 }}>{lead.channel}</span>
                 {lead.value > 0 && (
                     <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--color-success)' }}>
@@ -49,6 +49,23 @@ export function LeadCard({ lead, onClick, onDoubleClick, onDelete, onEdit }) {
                     </span>
                 )}
             </div>
+
+            {lead.tags && lead.tags.length > 0 && (
+                <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', pointerEvents: 'none' }}>
+                    {lead.tags.map(tag => (
+                        <span key={tag} style={{ 
+                            background: 'rgba(124, 58, 237, 0.1)', 
+                            color: '#a78bfa', 
+                            padding: '2px 6px', 
+                            borderRadius: 4, 
+                            fontSize: 10, 
+                            fontWeight: 600 
+                        }}>
+                            #{tag}
+                        </span>
+                    ))}
+                </div>
+            )}
         </motion.div>
     );
 }

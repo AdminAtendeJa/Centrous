@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Mail, MessageSquare, MessageCircle, Send, MoreVertical, Search, Star, Clock, Loader2 } from 'lucide-react';
 import { useSettingsStore } from '../../store/index.js';
+import toast from 'react-hot-toast';
 import './Inbox.css';
 
 export default function Inbox() {
@@ -148,7 +149,16 @@ export default function Inbox() {
                                         <p style={{ fontSize: 12, color: 'var(--text-muted)' }}>Vía {activeMessage.type}</p>
                                     </div>
                                 </div>
-                                <div style={{ display: 'flex', gap: 8 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--color-surface-2)', padding: '4px 8px', borderRadius: 6, border: '1px solid var(--color-border)' }}>
+                                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Etapa CRM:</span>
+                                        <select style={{ fontSize: 12, background: 'transparent', border: 'none', color: 'var(--color-primary-light)', fontWeight: 600, cursor: 'pointer', outline: 'none' }}>
+                                            <option value="new">🆕 Nuevo</option>
+                                            <option value="qualified">✅ Calificado</option>
+                                            <option value="proposal">📄 Propuesta</option>
+                                            <option value="won">🏆 Ganado</option>
+                                        </select>
+                                    </div>
                                     <button className="btn-icon"><Star size={16} /></button>
                                     <button className="btn-icon"><Clock size={16} /></button>
                                     <button className="btn-icon"><MoreVertical size={16} /></button>
@@ -196,7 +206,25 @@ export default function Inbox() {
                                         >
                                             Insertar Plantilla IA
                                         </button>
-                                        <button className="btn btn-primary btn-sm"><Send size={14} /> Enviar (Demo)</button>
+                                        <button 
+                                            className="btn btn-primary btn-sm"
+                                            onClick={() => {
+                                                if (!replyText.trim()) return;
+                                                const newMsg = {
+                                                    id: Date.now().toString(),
+                                                    sender_name: 'AtendeJá Bot',
+                                                    text: replyText,
+                                                    direction: 'sent',
+                                                    type: activeMessage.type,
+                                                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                                                };
+                                                setMessages(prev => [...prev, newMsg]);
+                                                setReplyText('');
+                                                toast.success('Mensaje enviado');
+                                            }}
+                                        >
+                                            <Send size={14} /> Enviar
+                                        </button>
                                     </div>
                                 </div>
                             </div>

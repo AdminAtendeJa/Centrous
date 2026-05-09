@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Bot, Sparkles, X, Activity, CheckCircle, FileText, MessageSquare, Copy, Briefcase } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { useSettingsStore, useCRMStore, useTasksStore, useNotesStore, useProposalsStore, useUIStore, useAIStore } from '../../store/index.js';
+import { useSettingsStore, useCRMStore, useTasksStore, useNotesStore, useProposalsStore, useUIStore, useAIStore, useAnalyticsStore, useAuthStore } from '../../store/index.js';
 
 export default function Copilot() {
     const [open, setOpen] = useState(false);
@@ -37,19 +37,23 @@ export default function Copilot() {
             const context = {
                 leads: useCRMStore.getState().leads,
                 tasks: useTasksStore.getState().tasks,
-                proposals: useProposalsStore.getState().proposals
+                proposals: useProposalsStore.getState().proposals,
+                telemetry: useAnalyticsStore.getState(),
+                userRole: useAuthStore.getState().user?.user_metadata?.profession || 'Usuario General'
             };
 
             const systemPrompt = `
-Eres GROQ COPILOT, un agente de IA experto en optimización de ventas, atención al cliente y productividad.
-Acabas de leer la base de datos de un CRM y Gestor de Tareas.
+Eres GROQ COPILOT, un agente de IA experto. Tienes acceso a la memoria cognitiva del usuario y su telemetría en tiempo real.
+El usuario actual tiene el rol de: **${context.userRole}**. Debes adaptar tu tono, sugerencias y enfoque a las necesidades de este rol (ej. si es creador, háblale sobre alcance y audiencia; si es vendedor, háblale de cierres y pipeline; si es desarrollador, enfócate en sistemas y eficiencia).
+
+Acabas de leer la base de datos de un CRM, Gestor de Tareas y su telemetría (qué módulos visita más, qué acciones toma).
 
 TU OBJETIVO:
-1. Crear un resumen táctico y breve de 2 oraciones del estado actual del negocio.
-2. Sugerir 2-3 tareas críticas faltantes (basado en leads sin atender).
-3. Añadir 1-2 notas estratégicas a nivel directivo.
-4. Redactar respuestas exactas a clientes: Para los leads activos que requieren respuesta, sugiere un mensaje final de chat para enviarles.
-5. Sugerir 1 Propuesta: Genera una oferta o "hook" comercial basado en el lead con más valor potencial.
+1. Crear un resumen táctico de 2 oraciones del estado del negocio, mencionando algo específico sobre sus hábitos recientes o módulos más usados.
+2. Sugerir 2-3 tareas críticas faltantes.
+3. Añadir 1-2 notas estratégicas a nivel directivo (adaptadas a su rol).
+4. Redactar respuestas exactas a clientes: Para los leads activos que requieren respuesta.
+5. Sugerir 1 Propuesta: Genera una oferta o "hook" comercial.
 
 REGLA ESTRICTA:
 Debes responder ÚNICA Y EXCLUSIVAMENTE con un objeto JSON crudo, sin markdown tags.
