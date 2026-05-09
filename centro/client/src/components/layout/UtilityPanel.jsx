@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { 
     MessageSquare, Calendar, Zap, MoreHorizontal, 
     Clock, CheckCircle2, Plus, ArrowUpRight,
-    FilePlus, Note, Receipt, CalendarPlus, FileDescription, LayoutKanban
+    FilePlus, StickyNote, Receipt, CalendarPlus, FileSignature, LayoutKanban
 } from 'lucide-react';
 import { useCRMStore, useTasksStore } from '../../store/index.js';
 
@@ -21,10 +21,10 @@ export default function UtilityPanel() {
 
     const quickActions = [
         { icon: FilePlus, title: 'Novo documento', sub: 'Crie e compartilhe' },
-        { icon: Zap, title: 'Nova nota', sub: 'Rápida e privada' },
+        { icon: StickyNote, title: 'Nova nota', sub: 'Rápida e privada' },
         { icon: Receipt, title: 'Cobrança', sub: 'Emitir fatura' },
         { icon: CalendarPlus, title: 'Agendar reunião', sub: 'Sync automático' },
-        { icon: FileDescription, title: 'Novo contrato', sub: 'Com assinatura' },
+        { icon: FileSignature, title: 'Novo contrato', sub: 'Com assinatura' },
         { icon: LayoutKanban, title: 'Novo projeto', sub: 'Kanban ou lista' },
     ];
 
