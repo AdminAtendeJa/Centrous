@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { toast } from 'react-hot-toast';
+import { dataSupabase } from '../config/supabase';
 
 // ── Settings Store (API keys, prefs) ────────────────────────────────────────
 export const useSettingsStore = create(
@@ -36,44 +37,38 @@ export const useCRMStore = create(
         (set, get) => ({
             leads: [],
             fetchLeads: async () => {
-                const token = useAuthStore.getState().session?.access_token;
-                if (!token) return;
                 try {
-                    const res = await fetch('/api/crm/leads', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    const data = await res.json();
-                    if (data.success) set({ leads: data.leads });
-                } catch (err) { console.error(err); }
+                    const { data, error } = await dataSupabase
+                        .from('leads')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+                    
+                    if (error) throw error;
+                    set({ leads: data || [] });
+                } catch (err) { 
+                    console.error('Error fetching leads:', err);
+                }
             },
             addLead: async (lead) => {
-                const token = useAuthStore.getState().session?.access_token;
-                if (!token) return;
                 try {
-                    const res = await fetch('/api/crm/leads', {
-                        method: 'POST', 
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify(lead)
-                    });
-                    const data = await res.json();
-                    if (data.success) get().fetchLeads();
-                } catch (err) { console.error(err); }
+                    const { error } = await dataSupabase
+                        .from('leads')
+                        .insert([lead]);
+                    
+                    if (error) throw error;
+                    get().fetchLeads();
+                } catch (err) { 
+                    console.error('Error adding lead:', err);
+                }
             },
             updateLead: async (id, payload) => {
-                const token = useAuthStore.getState().session?.access_token;
-                if (!token) return;
                 try {
-                    await fetch(`/api/crm/leads/${id}`, {
-                        method: 'PUT', 
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify(payload)
-                    });
+                    const { error } = await dataSupabase
+                        .from('leads')
+                        .update(payload)
+                        .eq('id', id);
+                    
+                    if (error) throw error;
                     get().fetchLeads();
                     toast.success('Lead actualizado');
                 } catch (err) {
@@ -82,13 +77,13 @@ export const useCRMStore = create(
                 }
             },
             deleteLead: async (id) => {
-                const token = useAuthStore.getState().session?.access_token;
-                if (!token) return;
                 try {
-                    await fetch(`/api/crm/leads/${id}`, { 
-                        method: 'DELETE',
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
+                    const { error } = await dataSupabase
+                        .from('leads')
+                        .delete()
+                        .eq('id', id);
+                    
+                    if (error) throw error;
                     set((s) => ({ leads: s.leads.filter((l) => l.id !== id) }));
                     toast.success('Lead eliminado');
                 } catch (err) {
@@ -97,18 +92,14 @@ export const useCRMStore = create(
                 }
             },
             moveLead: async (id, stage) => {
-                const token = useAuthStore.getState().session?.access_token;
-                if (!token) return;
                 try {
                     set((s) => ({ leads: s.leads.map((l) => (l.id === id ? { ...l, stage } : l)) }));
-                    await fetch(`/api/crm/leads/${id}`, {
-                        method: 'PUT', 
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ stage })
-                    });
+                    const { error } = await dataSupabase
+                        .from('leads')
+                        .update({ stage })
+                        .eq('id', id);
+                    
+                    if (error) throw error;
                     toast.success('Etapa actualizada');
                 } catch (err) {
                     toast.error('Error al mover lead');
@@ -153,61 +144,59 @@ export const useTasksStore = create(
         (set, get) => ({
             tasks: [],
             fetchTasks: async () => {
-                const token = useAuthStore.getState().session?.access_token;
-                if (!token) return;
                 try {
-                    const res = await fetch('/api/tasks', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    const data = await res.json();
-                    if (data.success) set({ tasks: data.tasks });
-                } catch (err) { console.error(err); }
+                    const { data, error } = await dataSupabase
+                        .from('tasks')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+                    
+                    if (error) throw error;
+                    set({ tasks: data || [] });
+                } catch (err) { 
+                    console.error('Error fetching tasks:', err);
+                }
             },
             addTask: async (t) => {
-                const token = useAuthStore.getState().session?.access_token;
-                if (!token) return;
                 try {
-                    const res = await fetch('/api/tasks', {
-                        method: 'POST', 
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify(t)
-                    });
-                    const data = await res.json();
-                    if (data.success) get().fetchTasks();
-                } catch (err) { console.error(err); }
+                    const { error } = await dataSupabase
+                        .from('tasks')
+                        .insert([t]);
+                    
+                    if (error) throw error;
+                    get().fetchTasks();
+                } catch (err) { 
+                    console.error('Error adding task:', err);
+                }
             },
             toggleTask: async (id) => {
-                const token = useAuthStore.getState().session?.access_token;
-                if (!token) return;
                 try {
                     const task = get().tasks.find((t) => t.id === id);
                     if (!task) return;
 
                     set((s) => ({ tasks: s.tasks.map((t) => (t.id === id ? { ...t, done: !t.done } : t)) }));
 
-                    await fetch(`/api/tasks/${id}`, {
-                        method: 'PUT', 
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ done: !task.done })
-                    });
-                } catch (err) { console.error(err); }
+                    const { error } = await dataSupabase
+                        .from('tasks')
+                        .update({ done: !task.done })
+                        .eq('id', id);
+                    
+                    if (error) throw error;
+                } catch (err) { 
+                    console.error('Error toggling task:', err);
+                }
             },
             deleteTask: async (id) => {
-                const token = useAuthStore.getState().session?.access_token;
-                if (!token) return;
                 try {
-                    await fetch(`/api/tasks/${id}`, { 
-                        method: 'DELETE',
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
+                    const { error } = await dataSupabase
+                        .from('tasks')
+                        .delete()
+                        .eq('id', id);
+                    
+                    if (error) throw error;
                     set((s) => ({ tasks: s.tasks.filter((t) => t.id !== id) }));
-                } catch (err) { console.error(err); }
+                } catch (err) { 
+                    console.error('Error deleting task:', err);
+                }
             },
         }),
         { name: 'centro-tasks' }

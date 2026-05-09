@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { supabase } from '../../config/supabase';
 import { useAuthStore } from '../../store/index.js';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
+import { Zap } from 'lucide-react';
 import './Auth.css';
 
 export default function Auth() {
     const [isLogin, setIsLogin] = useState(true);
     const [loading, setLoading] = useState(false);
+    
+    // Auth Form State
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     
@@ -60,7 +63,7 @@ export default function Auth() {
                     transition={{ duration: 0.5 }}
                 >
                     <div className="auth-header">
-                        <div className="auth-logo">⚡</div>
+                        <div className="auth-logo"><Zap size={24} /></div>
                         <h1 className="auth-title">
                             {isLogin ? 'Bienvenido a ' : 'Únete a '}
                             <span className="auth-highlight">Centrous</span>

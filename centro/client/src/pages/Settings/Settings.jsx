@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Save, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Save, Eye, EyeOff, CheckCircle, Database, Settings as SettingsIcon } from 'lucide-react';
 import { useSettingsStore } from '../../store/index.js';
+import { updateDataProject } from '../../config/supabase';
 import toast from 'react-hot-toast';
 
 function ApiField({ label, field, placeholder, value, onChange, hint }) {
@@ -49,6 +50,60 @@ export default function Settings() {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, maxWidth: 900 }}>
+                {/* Supabase Core Connection */}
+                <div className="card" style={{ border: '1px solid var(--color-primary-glow)', background: 'linear-gradient(135deg, var(--color-surface), rgba(99, 102, 241, 0.05))' }}>
+                    <div className="flex-between" style={{ marginBottom: 16 }}>
+                        <h2 style={{ fontSize: 15, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Database size={16} color="var(--color-primary)" /> Conexión de Centrous
+                        </h2>
+                        <span className={`badge ${localStorage.getItem('active_sb_key') ? 'badge-warning' : 'badge-success'}`}>
+                            {localStorage.getItem('active_sb_key') ? 'Personalizada' : 'Por Defecto'}
+                        </span>
+                    </div>
+                    <p style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 16 }}>
+                        Configura el proyecto de Supabase que alimenta la base de datos de este workspace.
+                    </p>
+                    <div style={{ marginBottom: 14 }}>
+                        <label>Supabase URL</label>
+                        <input 
+                            id="custom_sb_url"
+                            defaultValue={localStorage.getItem('active_sb_url') || import.meta.env.VITE_SUPABASE_URL || 'https://trwxqvvztboqephqcsdi.supabase.co'} 
+                            placeholder="https://tu-proyecto.supabase.co"
+                        />
+                    </div>
+                    <div style={{ marginBottom: 16 }}>
+                        <label>Anon Key</label>
+                        <input 
+                            id="custom_sb_key"
+                            type="password"
+                            defaultValue={localStorage.getItem('active_sb_key') || import.meta.env.VITE_SUPABASE_ANON_KEY || ''} 
+                            placeholder="eyJhbGciOiJIUzI1Ni..."
+                        />
+                    </div>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                        <button 
+                            className="btn btn-primary btn-sm" 
+                            style={{ flex: 1 }}
+                            onClick={() => {
+                                const url = document.getElementById('custom_sb_url').value;
+                                const key = document.getElementById('custom_sb_key').value;
+                                if (!url || !key) return toast.error('Completa ambos campos');
+                                updateDataProject(url, key);
+                            }}
+                        >
+                            Actualizar Conexión
+                        </button>
+                        {localStorage.getItem('active_sb_key') && (
+                            <button 
+                                className="btn btn-ghost btn-sm"
+                                onClick={() => updateDataProject(null, null)}
+                            >
+                                Resetear
+                            </button>
+                        )}
+                    </div>
+                </div>
+
                 {/* Profile */}
                 <div className="card">
                     <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>👤 Perfil de Empresa</h2>

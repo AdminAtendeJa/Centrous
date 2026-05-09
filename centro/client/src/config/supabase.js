@@ -1,12 +1,36 @@
 import { createClient } from '@supabase/supabase-js';
 
-// En desarrollo usamos variables de entorno de Vite o valores hardcoded si sabemos que son seguros
-// Para este proyecto, usaremos los valores detectados en el servidor
-const supabaseUrl = 'https://trwxqvvztboqephqcsdi.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyd3hxdnZ6dGJvcWVwaHFjc2RpIiwicm9sZSI6InFhbm9uIiwiaWF0IjoxNzc1NzIwMDc4LCJleHAiOjIwOTEyOTYwNzh9.Yp75S9_V3R3_Yh1F9h0_6x8_1_v_x_x_x_x'; 
-// Nota: Deberías usar la ANON_KEY en el cliente, no la SERVICE_KEY. 
-// Como no tengo la anon key explícitamente en el .env (solo vi la service key), 
-// generaré una o pediré al usuario que la ponga. 
-// Normalmente la anon key está disponible en el dashboard de Supabase.
+// 1. CLIENTE DE AUTENTICACIÓN (Fijo para el login de la app)
+// Este proyecto guarda las cuentas de los usuarios de Centrous
+const masterUrl = import.meta.env.VITE_SUPABASE_URL || 'https://trwxqvvztboqephqcsdi.supabase.co';
+const masterKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''; // Configurar en .env
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(masterUrl, masterKey);
+
+// 2. CLIENTE DE DATOS (Dinámico - Configurable por el usuario)
+// Este es el que el usuario configura en Ajustes para ver sus propias tablas
+const savedDataUrl = localStorage.getItem('active_sb_url');
+const savedDataKey = localStorage.getItem('active_sb_key');
+
+export let dataSupabase = createClient(
+    savedDataUrl || masterUrl, 
+    savedDataKey || masterKey
+);
+
+/**
+ * Función para actualizar la base de datos de trabajo sin cerrar sesión
+ */
+export const updateDataProject = (url, key) => {
+    if (!url || !key) {
+        localStorage.removeItem('active_sb_url');
+        localStorage.removeItem('active_sb_key');
+        dataSupabase = createClient(masterUrl, masterKey);
+    } else {
+        localStorage.setItem('active_sb_url', url);
+        localStorage.setItem('active_sb_key', key);
+        dataSupabase = createClient(url, key);
+    }
+    // No necesitamos recargar toda la app, solo notificar a los stores
+    // Pero por simplicidad en esta fase, un reload asegura que todo se refresque
+    window.location.reload();
+};
