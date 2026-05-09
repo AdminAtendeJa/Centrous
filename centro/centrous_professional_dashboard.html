@@ -1,0 +1,694 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: var(--font-sans, system-ui); background: transparent; color: var(--color-text-primary); }
+
+  .shell {
+    display: grid;
+    grid-template-columns: 64px 1fr;
+    grid-template-rows: auto;
+    min-height: 580px;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    background: var(--color-background-primary);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--color-background-secondary);
+    border-right: 0.5px solid var(--color-border-tertiary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 0;
+    gap: 4px;
+  }
+  .logo {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: #1a1a2e;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 600; color: #fff;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+  }
+  .nav-item {
+    width: 44px; height: 44px;
+    border-radius: var(--border-radius-md);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s;
+    color: var(--color-text-secondary);
+    position: relative;
+  }
+  .nav-item:hover { background: var(--color-background-primary); color: var(--color-text-primary); }
+  .nav-item.active { background: var(--color-background-primary); color: var(--color-text-primary); }
+  .nav-item i { font-size: 18px; }
+  .nav-item .badge {
+    position: absolute; top: 6px; right: 6px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #E24B4A;
+    border: 1.5px solid var(--color-background-secondary);
+  }
+  .nav-divider {
+    width: 32px;
+    height: 0.5px;
+    background: var(--color-border-tertiary);
+    margin: 6px 0;
+  }
+  .nav-item .tooltip {
+    position: absolute;
+    left: 54px;
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 4px 10px;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 10;
+  }
+  .nav-item:hover .tooltip { opacity: 1; }
+
+  /* Main */
+  .main { display: flex; flex-direction: column; }
+
+  /* Topbar */
+  .topbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    background: var(--color-background-primary);
+  }
+  .topbar-title { font-size: 14px; font-weight: 500; flex: 1; }
+  .pill {
+    font-size: 11px; padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .pill:hover { background: var(--color-background-primary); border-color: var(--color-border-secondary); color: var(--color-text-primary); }
+  .pill.active {
+    background: #1a1a2e;
+    color: #fff;
+    border-color: transparent;
+  }
+  .avatar-row { display: flex; gap: -4px; }
+  .avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-background-primary);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 500; color: #fff;
+    margin-left: -6px;
+  }
+
+  /* Content grid */
+  .content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 0;
+  }
+
+  /* Left panel */
+  .left-panel { padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow: hidden; }
+
+  /* Stat cards */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .stat-card {
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .stat-card:hover { background: var(--color-background-tertiary); }
+  .stat-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 6px; }
+  .stat-value { font-size: 22px; font-weight: 500; line-height: 1; }
+  .stat-delta { font-size: 11px; margin-top: 4px; color: var(--color-text-success); }
+  .stat-delta.down { color: var(--color-text-danger); }
+
+  /* Tasks */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .section-title { font-size: 13px; font-weight: 500; }
+  .section-action {
+    font-size: 11px; color: var(--color-text-secondary);
+    cursor: pointer; display: flex; align-items: center; gap: 3px;
+  }
+  .section-action:hover { color: var(--color-text-primary); }
+
+  .task-list { display: flex; flex-direction: column; gap: 6px; }
+  .task {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    background: var(--color-background-primary);
+  }
+  .task:hover { border-color: var(--color-border-secondary); background: var(--color-background-secondary); }
+  .check-circle {
+    width: 16px; height: 16px; border-radius: 50%;
+    border: 1.5px solid var(--color-border-secondary);
+    flex-shrink: 0;
+    transition: all 0.15s;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .check-circle.done {
+    background: var(--color-background-success);
+    border-color: var(--color-border-success);
+  }
+  .check-circle.done::after {
+    content: '';
+    width: 6px; height: 4px;
+    border-left: 1.5px solid var(--color-text-success);
+    border-bottom: 1.5px solid var(--color-text-success);
+    transform: rotate(-45deg) translateY(-1px);
+  }
+  .task-text { font-size: 13px; flex: 1; }
+  .task-text.done { text-decoration: line-through; color: var(--color-text-secondary); }
+  .tag {
+    font-size: 10px; padding: 2px 7px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .tag-blue { background: var(--color-background-info); color: var(--color-text-info); }
+  .tag-amber { background: var(--color-background-warning); color: var(--color-text-warning); }
+  .tag-green { background: var(--color-background-success); color: var(--color-text-success); }
+  .tag-red { background: var(--color-background-danger); color: var(--color-text-danger); }
+
+  /* Mini calendar */
+  .mini-cal {
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 12px;
+  }
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .cal-month { font-size: 12px; font-weight: 500; }
+  .cal-nav { font-size: 12px; color: var(--color-text-secondary); cursor: pointer; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+  .cal-day { font-size: 10px; text-align: center; padding: 3px 0; border-radius: 4px; cursor: pointer; }
+  .cal-day.head { color: var(--color-text-secondary); }
+  .cal-day:not(.head):hover { background: var(--color-background-primary); }
+  .cal-day.today { background: #1a1a2e; color: #fff; font-weight: 500; }
+  .cal-day.event { position: relative; }
+  .cal-day.event::after {
+    content: ''; position: absolute; bottom: 1px; left: 50%; transform: translateX(-50%);
+    width: 3px; height: 3px; border-radius: 50%;
+    background: #E24B4A;
+  }
+  .cal-day.other { color: var(--color-text-tertiary); }
+
+  /* Right panel */
+  .right-panel {
+    border-left: 0.5px solid var(--color-border-tertiary);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-tabs {
+    display: flex;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    padding: 0 16px;
+    gap: 0;
+  }
+  .panel-tab {
+    font-size: 12px; padding: 10px 12px;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -0.5px;
+    transition: all 0.15s;
+  }
+  .panel-tab.active {
+    color: var(--color-text-primary);
+    border-bottom-color: #1a1a2e;
+    font-weight: 500;
+  }
+  .panel-tab:hover:not(.active) { color: var(--color-text-primary); }
+
+  .panel-body { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+  /* Messages */
+  .msg {
+    display: flex; gap: 8px; cursor: pointer;
+    padding: 8px 10px; border-radius: var(--border-radius-md);
+    transition: background 0.15s;
+  }
+  .msg:hover { background: var(--color-background-secondary); }
+  .msg-ava {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 500; color: #fff;
+    flex-shrink: 0;
+  }
+  .msg-meta { flex: 1; min-width: 0; }
+  .msg-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 2px; }
+  .msg-name { font-size: 12px; font-weight: 500; }
+  .msg-time { font-size: 10px; color: var(--color-text-secondary); }
+  .msg-preview { font-size: 11px; color: var(--color-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .msg-unread { width: 6px; height: 6px; border-radius: 50%; background: #1a1a2e; flex-shrink: 0; margin-top: 10px; }
+
+  /* Agenda */
+  .agenda-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 8px 0;
+    border-bottom: 0.5px solid var(--color-border-tertiary);
+    cursor: pointer;
+  }
+  .agenda-item:last-child { border-bottom: none; }
+  .agenda-time { font-size: 11px; color: var(--color-text-secondary); min-width: 42px; padding-top: 2px; }
+  .agenda-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+  .agenda-info { flex: 1; }
+  .agenda-title { font-size: 12px; font-weight: 500; margin-bottom: 2px; }
+  .agenda-sub { font-size: 11px; color: var(--color-text-secondary); }
+
+  /* Quick actions */
+  .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .quick-btn {
+    padding: 10px;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    background: var(--color-background-primary);
+    transition: all 0.15s;
+    text-align: left;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .quick-btn:hover { border-color: var(--color-border-secondary); background: var(--color-background-secondary); }
+  .quick-btn i { font-size: 18px; color: var(--color-text-secondary); }
+  .quick-btn span { font-size: 11px; font-weight: 500; }
+  .quick-btn p { font-size: 10px; color: var(--color-text-secondary); }
+
+  /* Integrations bar */
+  .integrations {
+    margin-top: auto;
+    padding: 12px 20px;
+    border-top: 0.5px solid var(--color-border-tertiary);
+    display: flex; align-items: center; gap: 8px;
+    background: var(--color-background-secondary);
+  }
+  .int-label { font-size: 11px; color: var(--color-text-secondary); flex: 1; }
+  .int-chip {
+    font-size: 10px; padding: 3px 8px;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: 20px;
+    color: var(--color-text-secondary);
+    background: var(--color-background-primary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .int-chip:hover { border-color: var(--color-border-secondary); color: var(--color-text-primary); }
+  .int-chip.on { background: #1a1a2e; color: #fff; border-color: transparent; }
+</style>
+</head>
+<body>
+
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Centrous — painel de controle profissional com navegação lateral, métricas, tarefas, agenda e mensagens</h2>
+
+<div class="shell">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">Ct</div>
+
+    <div class="nav-item active" title="Início">
+      <i class="ti ti-layout-dashboard" aria-hidden="true"></i>
+      <div class="tooltip">Início</div>
+    </div>
+    <div class="nav-item">
+      <i class="ti ti-checkup-list" aria-hidden="true"></i>
+      <div class="tooltip">Tarefas</div>
+      <div class="badge"></div>
+    </div>
+    <div class="nav-item">
+      <i class="ti ti-calendar-event" aria-hidden="true"></i>
+      <div class="tooltip">Agenda</div>
+    </div>
+    <div class="nav-item">
+      <i class="ti ti-message-circle" aria-hidden="true"></i>
+      <div class="tooltip">Mensagens</div>
+      <div class="badge"></div>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-item">
+      <i class="ti ti-folder" aria-hidden="true"></i>
+      <div class="tooltip">Arquivos</div>
+    </div>
+    <div class="nav-item">
+      <i class="ti ti-chart-bar" aria-hidden="true"></i>
+      <div class="tooltip">Relatórios</div>
+    </div>
+    <div class="nav-item">
+      <i class="ti ti-users" aria-hidden="true"></i>
+      <div class="tooltip">Clientes</div>
+    </div>
+    <div class="nav-item">
+      <i class="ti ti-plug" aria-hidden="true"></i>
+      <div class="tooltip">Integrações</div>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-item" style="margin-top: auto;">
+      <i class="ti ti-settings" aria-hidden="true"></i>
+      <div class="tooltip">Configurações</div>
+    </div>
+    <div class="nav-item">
+      <div class="avatar" style="background: #534AB7; width: 30px; height: 30px; font-size: 11px;">JP</div>
+      <div class="tooltip">Meu perfil</div>
+    </div>
+  </div>
+
+  <!-- Main area -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <span class="topbar-title">Painel geral</span>
+      <div style="display:flex;gap:6px;">
+        <div class="pill active" onclick="sendPrompt('Mostre mais sobre o módulo de Visão Geral do Centrous')">Visão geral</div>
+        <div class="pill" onclick="sendPrompt('Mostre mais sobre o módulo de Projetos do Centrous')">Projetos</div>
+        <div class="pill" onclick="sendPrompt('Mostre mais sobre o módulo de Finanças do Centrous')">Finanças</div>
+        <div class="pill" onclick="sendPrompt('Mostre mais sobre o módulo de Analytics do Centrous')">Analytics</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-left:4px;">
+        <div class="avatar-row">
+          <div class="avatar" style="background:#534AB7;z-index:3">JP</div>
+          <div class="avatar" style="background:#0F6E56;z-index:2">MC</div>
+          <div class="avatar" style="background:#993C1D;z-index:1">AL</div>
+        </div>
+        <button onclick="sendPrompt('Como convidar membros da equipe para o Centrous?')" style="font-size:11px;padding:4px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:transparent;cursor:pointer;color:var(--color-text-secondary)">
+          <i class="ti ti-plus" style="font-size:12px;" aria-hidden="true"></i> Convidar
+        </button>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- Left -->
+      <div class="left-panel">
+
+        <!-- Stats -->
+        <div>
+          <div class="section-header">
+            <span class="section-title">Esta semana</span>
+            <span class="section-action" onclick="sendPrompt('Explique as métricas da semana no Centrous')">
+              Ver tudo <i class="ti ti-arrow-right" style="font-size:11px" aria-hidden="true"></i>
+            </span>
+          </div>
+          <div class="stat-grid">
+            <div class="stat-card" onclick="sendPrompt('Detalhe as 12 tarefas concluídas desta semana')">
+              <div class="stat-label">Tarefas concluídas</div>
+              <div class="stat-value">12</div>
+              <div class="stat-delta">↑ 3 a mais que semana passada</div>
+            </div>
+            <div class="stat-card" onclick="sendPrompt('Detalhe as 4 reuniões desta semana')">
+              <div class="stat-label">Reuniões</div>
+              <div class="stat-value">4</div>
+              <div class="stat-delta">↓ 1 a menos</div>
+            </div>
+            <div class="stat-card" onclick="sendPrompt('Detalhe os 3 projetos ativos no Centrous')">
+              <div class="stat-label">Projetos ativos</div>
+              <div class="stat-value">3</div>
+              <div class="stat-delta" style="color:var(--color-text-secondary)">sem alteração</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tasks -->
+        <div style="flex: 1;">
+          <div class="section-header">
+            <span class="section-title">Tarefas de hoje</span>
+            <span class="section-action" onclick="sendPrompt('Abrir a lista completa de tarefas no Centrous')">
+              <i class="ti ti-plus" style="font-size:11px" aria-hidden="true"></i> Nova tarefa
+            </span>
+          </div>
+          <div class="task-list" id="tasks">
+            <div class="task">
+              <div class="check-circle done" onclick="toggleTask(this)" title="Marcar tarefa"></div>
+              <span class="task-text done">Revisar proposta do cliente</span>
+              <span class="tag tag-green">Pronto</span>
+            </div>
+            <div class="task">
+              <div class="check-circle" onclick="toggleTask(this)" title="Marcar tarefa"></div>
+              <span class="task-text">Enviar relatório mensal</span>
+              <span class="tag tag-amber">Urgente</span>
+            </div>
+            <div class="task">
+              <div class="check-circle" onclick="toggleTask(this)" title="Marcar tarefa"></div>
+              <span class="task-text">Preparar apresentação Q2</span>
+              <span class="tag tag-blue">Em progresso</span>
+            </div>
+            <div class="task">
+              <div class="check-circle" onclick="toggleTask(this)" title="Marcar tarefa"></div>
+              <span class="task-text">Ligar para fornecedor logístico</span>
+              <span class="tag tag-red">Atrasado</span>
+            </div>
+            <div class="task">
+              <div class="check-circle" onclick="toggleTask(this)" title="Marcar tarefa"></div>
+              <span class="task-text">Atualizar pipeline de vendas</span>
+              <span class="tag tag-blue">Em progresso</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini Calendar -->
+        <div class="mini-cal">
+          <div class="cal-header">
+            <span class="cal-month">Maio 2026</span>
+            <div style="display:flex;gap:8px;">
+              <span class="cal-nav">‹</span>
+              <span class="cal-nav">›</span>
+            </div>
+          </div>
+          <div class="cal-grid">
+            <div class="cal-day head">D</div>
+            <div class="cal-day head">S</div>
+            <div class="cal-day head">T</div>
+            <div class="cal-day head">Q</div>
+            <div class="cal-day head">Q</div>
+            <div class="cal-day head">S</div>
+            <div class="cal-day head">S</div>
+            <div class="cal-day other">27</div>
+            <div class="cal-day other">28</div>
+            <div class="cal-day other">29</div>
+            <div class="cal-day other">30</div>
+            <div class="cal-day event">1</div>
+            <div class="cal-day">2</div>
+            <div class="cal-day">3</div>
+            <div class="cal-day">4</div>
+            <div class="cal-day event">5</div>
+            <div class="cal-day">6</div>
+            <div class="cal-day">7</div>
+            <div class="cal-day event">8</div>
+            <div class="cal-day today">9</div>
+            <div class="cal-day">10</div>
+            <div class="cal-day">11</div>
+            <div class="cal-day event">12</div>
+            <div class="cal-day">13</div>
+            <div class="cal-day">14</div>
+            <div class="cal-day">15</div>
+            <div class="cal-day">16</div>
+            <div class="cal-day event">17</div>
+            <div class="cal-day">18</div>
+            <div class="cal-day">19</div>
+            <div class="cal-day">20</div>
+            <div class="cal-day">21</div>
+            <div class="cal-day">22</div>
+            <div class="cal-day">23</div>
+            <div class="cal-day event">24</div>
+            <div class="cal-day">25</div>
+            <div class="cal-day">26</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right panel -->
+      <div class="right-panel">
+        <div class="panel-tabs">
+          <div class="panel-tab active" onclick="showTab('msgs', this)">Mensagens</div>
+          <div class="panel-tab" onclick="showTab('agenda', this)">Agenda</div>
+          <div class="panel-tab" onclick="showTab('actions', this)">Ações rápidas</div>
+        </div>
+
+        <div class="panel-body" id="panel-msgs">
+          <div class="msg">
+            <div class="msg-ava" style="background:#534AB7">MC</div>
+            <div class="msg-meta">
+              <div class="msg-top">
+                <span class="msg-name">Marina Costa</span>
+                <span class="msg-time">10:32</span>
+              </div>
+              <div class="msg-preview">Consegui fechar com o cliente! Vamos alinhar os próximos...</div>
+            </div>
+            <div class="msg-unread"></div>
+          </div>
+          <div class="msg">
+            <div class="msg-ava" style="background:#0F6E56">AL</div>
+            <div class="msg-meta">
+              <div class="msg-top">
+                <span class="msg-name">André Lima</span>
+                <span class="msg-time">9:14</span>
+              </div>
+              <div class="msg-preview">O relatório tá pronto, só preciso da sua aprovação pra...</div>
+            </div>
+            <div class="msg-unread"></div>
+          </div>
+          <div class="msg">
+            <div class="msg-ava" style="background:#993C1D">PT</div>
+            <div class="msg-meta">
+              <div class="msg-top">
+                <span class="msg-name">Paula Teixeira</span>
+                <span class="msg-time">Ontem</span>
+              </div>
+              <div class="msg-preview">Oi! Quando você tem disponibilidade para a reunião de...</div>
+            </div>
+          </div>
+          <div class="msg">
+            <div class="msg-ava" style="background:#185FA5">RB</div>
+            <div class="msg-meta">
+              <div class="msg-top">
+                <span class="msg-name">Rafael Braga</span>
+                <span class="msg-time">Ontem</span>
+              </div>
+              <div class="msg-preview">Os dados da campanha chegaram. Crescimento de 23% em...</div>
+            </div>
+          </div>
+          <button onclick="sendPrompt('Como funciona o módulo de mensagens do Centrous?')" style="width:100%;padding:8px;font-size:12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:transparent;cursor:pointer;color:var(--color-text-secondary)">
+            Ver todas as mensagens ↗
+          </button>
+        </div>
+
+        <div class="panel-body" id="panel-agenda" style="display:none">
+          <div class="agenda-item" onclick="sendPrompt('Detalhe o stand-up matinal do time de hoje')">
+            <div class="agenda-time">9:00</div>
+            <div class="agenda-dot" style="background:#534AB7"></div>
+            <div class="agenda-info">
+              <div class="agenda-title">Stand-up do time</div>
+              <div class="agenda-sub">Google Meet · 30 min</div>
+            </div>
+          </div>
+          <div class="agenda-item" onclick="sendPrompt('Detalhe a reunião com cliente Acme Corp de hoje')">
+            <div class="agenda-time">11:00</div>
+            <div class="agenda-dot" style="background:#E24B4A"></div>
+            <div class="agenda-info">
+              <div class="agenda-title">Cliente: Acme Corp</div>
+              <div class="agenda-sub">Zoom · 1h · 3 participantes</div>
+            </div>
+          </div>
+          <div class="agenda-item" onclick="sendPrompt('Detalhe o almoço de trabalho com sócios de hoje')">
+            <div class="agenda-time">13:00</div>
+            <div class="agenda-dot" style="background:#0F6E56"></div>
+            <div class="agenda-info">
+              <div class="agenda-title">Almoço de trabalho</div>
+              <div class="agenda-sub">Presencial · com sócios</div>
+            </div>
+          </div>
+          <div class="agenda-item" onclick="sendPrompt('Detalhe a revisão de métricas Q2 de hoje')">
+            <div class="agenda-time">15:30</div>
+            <div class="agenda-dot" style="background:#BA7517"></div>
+            <div class="agenda-info">
+              <div class="agenda-title">Revisão de métricas Q2</div>
+              <div class="agenda-sub">Teams · 45 min</div>
+            </div>
+          </div>
+          <button onclick="sendPrompt('Abrir agenda completa no Centrous')" style="width:100%;padding:8px;font-size:12px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:transparent;cursor:pointer;color:var(--color-text-secondary)">
+            Ver agenda completa ↗
+          </button>
+        </div>
+
+        <div class="panel-body" id="panel-actions" style="display:none">
+          <div class="quick-grid">
+            <div class="quick-btn" onclick="sendPrompt('Como funciona a criação de documentos no Centrous?')">
+              <i class="ti ti-file-plus" aria-hidden="true"></i>
+              <span>Novo documento</span>
+              <p>Crie e compartilhe</p>
+            </div>
+            <div class="quick-btn" onclick="sendPrompt('Como funciona o módulo de notas no Centrous?')">
+              <i class="ti ti-note" aria-hidden="true"></i>
+              <span>Nova nota</span>
+              <p>Rápida e privada</p>
+            </div>
+            <div class="quick-btn" onclick="sendPrompt('Como emitir uma cobrança pelo Centrous?')">
+              <i class="ti ti-receipt" aria-hidden="true"></i>
+              <span>Cobrança</span>
+              <p>Emitir fatura</p>
+            </div>
+            <div class="quick-btn" onclick="sendPrompt('Como agendar uma reunião pelo Centrous?')">
+              <i class="ti ti-calendar-plus" aria-hidden="true"></i>
+              <span>Agendar reunião</span>
+              <p>Sync automático</p>
+            </div>
+            <div class="quick-btn" onclick="sendPrompt('Como funciona o módulo de contratos no Centrous?')">
+              <i class="ti ti-file-description" aria-hidden="true"></i>
+              <span>Novo contrato</span>
+              <p>Com assinatura</p>
+            </div>
+            <div class="quick-btn" onclick="sendPrompt('Como gerenciar um projeto no Centrous?')">
+              <i class="ti ti-layout-kanban" aria-hidden="true"></i>
+              <span>Novo projeto</span>
+              <p>Kanban ou lista</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Integrations bar -->
+    <div class="integrations">
+      <span class="int-label">Integrações ativas</span>
+      <div class="int-chip on">Google</div>
+      <div class="int-chip on">Slack</div>
+      <div class="int-chip on">WhatsApp</div>
+      <div class="int-chip">Notion</div>
+      <div class="int-chip">Trello</div>
+      <div class="int-chip" onclick="sendPrompt('Quais integrações o Centrous vai suportar?')">+ Ver todas</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function toggleTask(el) {
+  el.classList.toggle('done');
+  const text = el.nextElementSibling;
+  text.classList.toggle('done');
+}
+
+function showTab(name, el) {
+  document.getElementById('panel-msgs').style.display = name === 'msgs' ? 'flex' : 'none';
+  document.getElementById('panel-agenda').style.display = name === 'agenda' ? 'flex' : 'none';
+  document.getElementById('panel-actions').style.display = name === 'actions' ? 'flex' : 'none';
+  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+</script>
+</body>
+</html>

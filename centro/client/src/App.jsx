@@ -1,15 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
-import { useEffect, useState, useRef, Suspense, lazy } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { io } from 'socket.io-client';
 import { useCRMStore, useUIStore, useOnboardingStore, useTasksStore, useAuthStore, useAnalyticsStore } from './store/index.js';
 import { supabase } from './config/supabase';
 
 // Layout Components
 import Sidebar from './components/layout/Sidebar.jsx';
-import MobileNav from './components/layout/MobileNav';
-import MobileHeader from './components/layout/MobileHeader';
+import TopBar from './components/layout/TopBar';
+import UtilityPanel from './components/layout/UtilityPanel';
+import IntegrationsBar from './components/layout/IntegrationsBar';
 import Copilot from './components/ui/Copilot.jsx';
 import ErrorBoundary from './components/ui/ErrorBoundary.jsx';
 
@@ -80,7 +81,6 @@ function PageWrapper({ children }) {
 
 function AnimatedRoutes() {
     const location = useLocation();
-    const isDrawerExpanded = useUIStore(s => s.isDrawerExpanded);
     const onboardingCompleted = useOnboardingStore(s => s.onboardingCompleted);
     const { user, session, setSession, setUser } = useAuthStore();
 
@@ -114,6 +114,8 @@ function AnimatedRoutes() {
         );
     }
 
+    const currentTitle = location.pathname.split('/')[1]?.toUpperCase() || 'PAINEL';
+
     return (
         <AnimatePresence mode="wait">
             {!onboardingCompleted ? (
@@ -122,36 +124,41 @@ function AnimatedRoutes() {
                     <Route path="*" element={<Navigate to="/onboarding" replace />} />
                 </Routes>
             ) : (
-                <div key="app-layout" className={`app-layout ${isDrawerExpanded ? 'drawer-expanded-view' : ''}`}>
+                <div key="app-shell" className="app-shell-v3">
                     <SocketManager />
                     <BodyScrollLock />
-                    <MobileHeader />
-                    <Copilot />
                     <Sidebar />
-                    <main className="page-content">
-                        <ErrorBoundary dropoff={true}>
-                            <Suspense fallback={<div className="flex-center" style={{ height: '100%' }}><div className="loading-spinner" /></div>}>
-                                <Routes location={location} key={location.pathname}>
-                                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                                    <Route path="/dashboard" element={<PageWrapper><Dashboard /></PageWrapper>} />
-                                    <Route path="/crm" element={<PageWrapper><CRM /></PageWrapper>} />
-                                    <Route path="/meta-ads" element={<PageWrapper><MetaAds /></PageWrapper>} />
-                                    <Route path="/inbox" element={<PageWrapper><Inbox /></PageWrapper>} />
-                                    <Route path="/proposals" element={<PageWrapper><Proposals /></PageWrapper>} />
-                                    <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
-                                    <Route path="/supabase-monitor" element={<PageWrapper><SupabaseMonitor /></PageWrapper>} />
-                                    <Route path="/integrations" element={<PageWrapper><Integrations /></PageWrapper>} />
-                                    <Route path="/notion" element={<PageWrapper><NotionHub /></PageWrapper>} />
-                                    <Route path="/n8n" element={<PageWrapper><N8nMonitor /></PageWrapper>} />
-                                    <Route path="/social" element={<PageWrapper><SocialMedia /></PageWrapper>} />
-                                    <Route path="/productivity" element={<PageWrapper><Productivity /></PageWrapper>} />
-                                    <Route path="/finance" element={<PageWrapper><Finance /></PageWrapper>} />
-                                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                                </Routes>
-                            </Suspense>
-                        </ErrorBoundary>
-                    </main>
-                    <MobileNav />
+                    
+                    <div className="main-canvas-v3">
+                        <TopBar title={currentTitle} />
+                        <main className="content-v3">
+                            <ErrorBoundary dropoff={true}>
+                                <Suspense fallback={<div className="flex-center" style={{ height: '100%', justifyContent: 'center' }}><div className="loading-spinner" /></div>}>
+                                    <Routes location={location} key={location.pathname}>
+                                        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                        <Route path="/dashboard" element={<PageWrapper><Dashboard /></PageWrapper>} />
+                                        <Route path="/crm" element={<PageWrapper><CRM /></PageWrapper>} />
+                                        <Route path="/meta-ads" element={<PageWrapper><MetaAds /></PageWrapper>} />
+                                        <Route path="/inbox" element={<PageWrapper><Inbox /></PageWrapper>} />
+                                        <Route path="/proposals" element={<PageWrapper><Proposals /></PageWrapper>} />
+                                        <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
+                                        <Route path="/supabase-monitor" element={<PageWrapper><SupabaseMonitor /></PageWrapper>} />
+                                        <Route path="/integrations" element={<PageWrapper><Integrations /></PageWrapper>} />
+                                        <Route path="/notion" element={<PageWrapper><NotionHub /></PageWrapper>} />
+                                        <Route path="/n8n" element={<PageWrapper><N8nMonitor /></PageWrapper>} />
+                                        <Route path="/social" element={<PageWrapper><SocialMedia /></PageWrapper>} />
+                                        <Route path="/productivity" element={<PageWrapper><Productivity /></PageWrapper>} />
+                                        <Route path="/finance" element={<PageWrapper><Finance /></PageWrapper>} />
+                                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                                    </Routes>
+                                </Suspense>
+                            </ErrorBoundary>
+                        </main>
+                        <IntegrationsBar />
+                    </div>
+
+                    <UtilityPanel />
+                    <Copilot />
                 </div>
             )}
         </AnimatePresence>

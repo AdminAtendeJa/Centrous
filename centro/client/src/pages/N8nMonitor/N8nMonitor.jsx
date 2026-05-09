@@ -1,183 +1,114 @@
-import { useState, useEffect } from 'react';
-import { Workflow, RefreshCw, Power, CheckCircle, XCircle, AlertTriangle, Info, ExternalLink } from 'lucide-react';
-import axios from 'axios';
+import { useState } from 'react';
+import { RefreshCw, Power, CheckCircle, XCircle, ExternalLink, Workflow, MoreHorizontal, Activity } from 'lucide-react';
 import { useSettingsStore } from '../../store/index.js';
 
 const DEMO_WORKFLOWS = [
-    { id: '1', name: 'AtendeJá — WhatsApp SDR', active: true, lastExecution: { status: 'success', startedAt: new Date(Date.now() - 1000 * 60 * 5).toISOString() }, executionCount: 842 },
-    { id: '2', name: 'Lead → Notion + Google Sheets', active: true, lastExecution: { status: 'success', startedAt: new Date(Date.now() - 1000 * 60 * 12).toISOString() }, executionCount: 312 },
-    { id: '3', name: 'Gmail Notificaciones Leads', active: false, lastExecution: { status: 'error', startedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString() }, executionCount: 58 },
-    { id: '4', name: 'Google Calendar — Recordatorios', active: true, lastExecution: { status: 'success', startedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString() }, executionCount: 204 },
-    { id: '5', name: 'Reporte Semanal Automático', active: false, lastExecution: null, executionCount: 12 },
+    { id: '1', name: 'AtendeJá — WhatsApp SDR', active: true, status: 'success', lastRun: '5m atrás', executions: 842 },
+    { id: '2', name: 'Lead → Notion + Google Sheets', active: true, status: 'success', lastRun: '12m atrás', executions: 312 },
+    { id: '3', name: 'Gmail Notificaciones Leads', active: false, status: 'error', lastRun: '2h atrás', executions: 58 },
+    { id: '4', name: 'Google Calendar — Recordatórios', active: true, status: 'success', lastRun: '30m atrás', executions: 204 },
 ];
-
-function StatusBadge({ status }) {
-    if (status === 'success') return <span className="badge badge-success"><CheckCircle size={10} /> Exitoso</span>;
-    if (status === 'error') return <span className="badge badge-danger"><XCircle size={10} /> Error</span>;
-    return <span className="badge badge-muted">Sin ejecuciones</span>;
-}
-
-function relativeTime(dateStr) {
-    if (!dateStr) return '—';
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const m = Math.floor(diff / 60000);
-    if (m < 1) return 'hace un momento';
-    if (m < 60) return `hace ${m} min`;
-    const h = Math.floor(m / 60);
-    if (h < 24) return `hace ${h}h`;
-    return `hace ${Math.floor(h / 24)}d`;
-}
 
 export default function N8nMonitor() {
     const { settings } = useSettingsStore();
-    const [workflows, setWorkflows] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const isConnected = !!settings.n8nUrl && !!settings.n8nApiKey;
+    const [workflows, setWorkflows] = useState(DEMO_WORKFLOWS);
 
-    const fetchWorkflows = async () => {
-        if (!isConnected) { setWorkflows(DEMO_WORKFLOWS); return; }
-        setLoading(true); setError(null);
-        try {
-            const res = await axios.get('/api/n8n/workflows', {
-                headers: {
-                    'x-n8n-url': settings.n8nUrl,
-                    'x-n8n-api-key': settings.n8nApiKey,
-                }
-            });
-            setWorkflows(res.data);
-        } catch (e) {
-            setError(e.response?.data?.message || 'No se pudo conectar con n8n');
-            setWorkflows(DEMO_WORKFLOWS);
-        } finally {
-            setLoading(false);
-        }
+    const stats = [
+        { label: 'Workflows Ativos', value: workflows.filter(w => w.active).length, delta: 'Estável', trend: 'neutral' },
+        { label: 'Erros Recentes', value: workflows.filter(w => w.status === 'error').length, delta: '↑ 1 novo', trend: 'down' },
+        { label: 'Execuções (24h)', value: '1.2k', delta: '↑ 15%', trend: 'up' },
+    ];
+
+    const toggleActive = (id) => {
+        setWorkflows(prev => prev.map(w => w.id === id ? { ...w, active: !w.active } : w));
     };
-
-    const toggleWorkflow = async (id, active) => {
-        if (!isConnected) {
-            setWorkflows((prev) => prev.map((w) => w.id === id ? { ...w, active: !active } : w));
-            return;
-        }
-        try {
-            await axios.patch(`/api/n8n/workflows/${id}/toggle`, { active: !active }, {
-                headers: {
-                    'x-n8n-url': settings.n8nUrl,
-                    'x-n8n-api-key': settings.n8nApiKey,
-                }
-            });
-            fetchWorkflows();
-        } catch (e) {
-            setError('No se pudo cambiar el estado del workflow');
-        }
-    };
-
-    useEffect(() => { fetchWorkflows(); }, [isConnected]);
-
-    const activeCount = workflows.filter((w) => w.active).length;
-    const errorCount = workflows.filter((w) => w.lastExecution?.status === 'error').length;
 
     return (
-        <div className="animate-in">
-            <div className="page-header">
-                <h1>n8n Monitor ⚙️</h1>
-                <p>Estado de tus workflows en tiempo real.</p>
+        <div className="n8n-monitor-v3 animate-in">
+            {/* Stats */}
+            <div className="stat-grid-v3 mb-6">
+                {stats.map((stat, i) => (
+                    <div key={i} className="stat-card-v3">
+                        <div className="stat-label-v3">{stat.label}</div>
+                        <div className="stat-value-v3">{stat.value}</div>
+                        <div className={`stat-delta-v3 ${stat.trend}`}>{stat.delta}</div>
+                    </div>
+                ))}
             </div>
 
-            {!isConnected && (
-                <div className="demo-banner">
-                    <Info size={16} />
-                    Datos de demo. Configura tu n8n URL y API Key en <strong style={{ marginLeft: 4 }}>Ajustes</strong>.
+            {/* Toolbar */}
+            <div className="toolbar-v3 mb-4">
+                <div className="search-box-v3">
+                    <Activity size={14} />
+                    <span style={{fontSize: 13, fontWeight: 500}}>Status do Servidor: <span className="text-success">Operacional</span></span>
                 </div>
-            )}
-
-            {/* Stats row */}
-            <div className="grid-3" style={{ marginBottom: 24 }}>
-                <div className="card flex-center gap-3">
-                    <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(74,222,128,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <CheckCircle size={20} color="var(--color-success)" />
-                    </div>
-                    <div>
-                        <div style={{ fontSize: 22, fontWeight: 800 }}>{activeCount}</div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Workflows Activos</div>
-                    </div>
-                </div>
-                <div className="card flex-center gap-3">
-                    <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(255,92,92,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <AlertTriangle size={20} color="var(--color-danger)" />
-                    </div>
-                    <div>
-                        <div style={{ fontSize: 22, fontWeight: 800 }}>{errorCount}</div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Con Errores</div>
-                    </div>
-                </div>
-                <div className="card flex-center gap-3">
-                    <div style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(108,99,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Workflow size={20} color="var(--color-primary-light)" />
-                    </div>
-                    <div>
-                        <div style={{ fontSize: 22, fontWeight: 800 }}>{workflows.length}</div>
-                        <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Total Workflows</div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex-between mb-4">
-                <h2 style={{ fontSize: 15, fontWeight: 700 }}>Todos los Workflows</h2>
-                <div className="flex gap-2">
-                    <button className="btn btn-ghost" onClick={fetchWorkflows} disabled={loading}>
-                        <RefreshCw size={14} /> {loading ? 'Actualizando…' : 'Actualizar'}
+                <div className="toolbar-actions-v3">
+                    <button className="btn-v3-secondary" onClick={() => setLoading(true)}>
+                        <RefreshCw size={14} className={loading ? 'spin' : ''} />
                     </button>
-                    {isConnected && settings.n8nUrl && (
-                        <a href={settings.n8nUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
-                            <ExternalLink size={14} /> Abrir n8n
-                        </a>
-                    )}
+                    <button className="btn-v3-primary">
+                        <ExternalLink size={14} /> Abrir n8n
+                    </button>
                 </div>
             </div>
 
-            {error && (
-                <div style={{ background: 'rgba(255,92,92,0.1)', border: '1px solid rgba(255,92,92,0.2)', borderRadius: 'var(--radius-md)', padding: '12px 16px', marginBottom: 16, color: 'var(--color-danger)', fontSize: 13 }}>
-                    ⚠️ {error}
-                </div>
-            )}
-
-            {loading ? (
-                <div className="empty-state"><div className="loading-spinner" /></div>
-            ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    {workflows.map((wf) => (
-                        <div key={wf.id} className="card" style={{ padding: '14px 18px' }}>
-                            <div className="flex-between">
-                                <div className="flex-center gap-3">
-                                    <div style={{
-                                        width: 10, height: 10, borderRadius: '50%',
-                                        background: wf.active ? 'var(--color-success)' : 'var(--color-surface-3)',
-                                        boxShadow: wf.active ? '0 0 8px var(--color-success)' : 'none',
-                                    }} />
-                                    <div>
-                                        <div style={{ fontWeight: 600, fontSize: 14 }}>{wf.name}</div>
-                                        <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>
-                                            {wf.executionCount} ejecuciones · Última: {relativeTime(wf.lastExecution?.startedAt)}
+            {/* Table */}
+            <div className="table-wrapper">
+                <table className="table-v3">
+                    <thead>
+                        <tr>
+                            <th>Workflow</th>
+                            <th>Status</th>
+                            <th>Última Execução</th>
+                            <th>Total</th>
+                            <th>Ativo</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {workflows.map((wf) => (
+                            <tr key={wf.id}>
+                                <td>
+                                    <div className="lead-cell-v3">
+                                        <div className="lead-ava-v3" style={{background: 'rgba(255, 109, 90, 0.1)', color: '#ff6d5a'}}>
+                                            <Workflow size={12} />
                                         </div>
+                                        <span className="font-medium">{wf.name}</span>
                                     </div>
-                                </div>
-                                <div className="flex-center gap-3">
-                                    <StatusBadge status={wf.lastExecution?.status} />
-                                    <button
-                                        onClick={() => toggleWorkflow(wf.id, wf.active)}
-                                        className="btn-icon"
-                                        title={wf.active ? 'Desactivar' : 'Activar'}
-                                        style={{ color: wf.active ? 'var(--color-success)' : 'var(--text-muted)' }}
+                                </td>
+                                <td>
+                                    <div className="channel-cell-v3">
+                                        {wf.status === 'success' ? (
+                                            <CheckCircle size={12} className="text-success" />
+                                        ) : (
+                                            <XCircle size={12} className="text-danger" />
+                                        )}
+                                        <span className={wf.status === 'success' ? 'text-success' : 'text-danger'}>
+                                            {wf.status === 'success' ? 'Sucesso' : 'Erro'}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>{wf.lastRun}</td>
+                                <td>{wf.executions}</td>
+                                <td>
+                                    <button 
+                                        className={`btn-icon-v3 ${wf.active ? 'text-success' : ''}`}
+                                        onClick={() => toggleActive(wf.id)}
                                     >
-                                        <Power size={15} />
+                                        <Power size={14} />
                                     </button>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                                </td>
+                                <td>
+                                    <button className="btn-icon-v3">
+                                        <MoreHorizontal size={14} />
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }

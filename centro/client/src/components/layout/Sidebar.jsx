@@ -1,99 +1,58 @@
-import { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import {
-    LayoutDashboard, FileText, Workflow, BarChart2,
-    Users, FileCheck, Brain, Settings, Zap, Inbox, DollarSign
+import { NavLink } from 'react-router-dom';
+import { 
+    LayoutDashboard, CheckSquare, Calendar, MessageCircle, 
+    Folder, BarChart2, Users, Plug, Settings, User 
 } from 'lucide-react';
-import styles from './Sidebar.module.css';
+import { useAuthStore } from '../../store/index.js';
 
 const NAV_ITEMS = [
-    {
-        label: 'Principal', items: [
-            { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-            { to: '/inbox', icon: Inbox, label: 'Bandeja Unificada' },
-            { to: '/finance', icon: DollarSign, label: 'Finanzas' },
-        ]
-    },
-    {
-        label: 'Herramientas', items: [
-            { to: '/notion', icon: FileText, label: 'Notion Hub' },
-            { to: '/n8n', icon: Workflow, label: 'n8n Monitor' },
-            { to: '/supabase-monitor', icon: Zap, label: 'Supabase Monitor' },
-            { to: '/integrations', icon: Settings, label: 'Integraciones API' },
-            { to: '/social', icon: BarChart2, label: 'Redes Sociales' },
-            { to: '/meta-ads', icon: Zap, label: 'Meta Ads' },
-        ]
-    },
-    {
-        label: 'Negocio', items: [
-            { to: '/crm', icon: Users, label: 'CRM' },
-            { to: '/proposals', icon: FileCheck, label: 'Propuestas' },
-        ]
-    },
-    {
-        label: 'Personal', items: [
-            { to: '/productivity', icon: Brain, label: 'Productividad' },
-            { to: '/settings', icon: Settings, label: 'Ajustes' },
-        ]
-    },
+    { to: '/dashboard', icon: LayoutDashboard, label: 'Início' },
+    { to: '/productivity', icon: CheckSquare, label: 'Tarefas', badge: true },
+    { to: '/finance', icon: Calendar, label: 'Agenda' },
+    { to: '/inbox', icon: MessageCircle, label: 'Mensagens', badge: true },
+    { type: 'divider' },
+    { to: '/notion', icon: Folder, label: 'Arquivos' },
+    { to: '/social', icon: BarChart2, label: 'Relatórios' },
+    { to: '/crm', icon: Users, label: 'Clientes' },
+    { to: '/integrations', icon: Plug, label: 'Integrações' },
 ];
 
-function Clock() {
-    const [time, setTime] = useState(new Date());
-    useEffect(() => {
-        const t = setInterval(() => setTime(new Date()), 1000);
-        return () => clearInterval(t);
-    }, []);
-    return (
-        <div>
-            <div className={styles.sidebarClock}>
-                {time.toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}
-            </div>
-            <div className={styles.sidebarClockDate}>
-                {time.toLocaleDateString('es', { weekday: 'long', day: 'numeric', month: 'short' })}
-            </div>
-        </div>
-    );
-}
-
 export default function Sidebar() {
-    const location = useLocation();
+    const { user } = useAuthStore();
+    const initials = user?.email?.substring(0, 2).toUpperCase() || 'US';
 
     return (
-        <aside className={styles.sidebar} style={{ transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}>
-            {/* Logo */}
-            <div className={styles.sidebarLogo}>
-                <div className={styles.sidebarLogoIcon}>
-                    <Zap size={16} />
-                </div>
-                <span className={styles.sidebarLogoText}>WorkHub<span> AI</span></span>
-            </div>
+        <aside className="sidebar-v3">
+            <div className="logo-v3">Ct</div>
 
-            {/* Nav */}
-            <nav className={styles.sidebarNav}>
-                {NAV_ITEMS.map((section) => (
-                    <div key={section.label}>
-                        <div className={styles.navSectionLabel}>{section.label}</div>
-                        {section.items.map(({ to, icon: Icon, label, badge }) => (
-                            <NavLink
-                                key={to}
-                                to={to}
-                                className={({ isActive }) =>
-                                    `${styles.navItem} ${isActive ? styles.active : ''}`
-                                }
-                            >
-                                <Icon size={16} className={styles.navIcon} />
-                                {label}
-                                {badge && <span className={styles.navBadge}>{badge}</span>}
-                            </NavLink>
-                        ))}
-                    </div>
+            <nav className="nav-v3">
+                {NAV_ITEMS.map((item, idx) => (
+                    item.type === 'divider' ? (
+                        <div key={`div-${idx}`} className="nav-divider-v3" />
+                    ) : (
+                        <NavLink
+                            key={item.to}
+                            to={item.to}
+                            className={({ isActive }) => `nav-item-v3 ${isActive ? 'active' : ''}`}
+                            title={item.label}
+                        >
+                            <item.icon size={18} strokeWidth={2} />
+                            {item.badge && <div className="nav-badge-v3" />}
+                            <div className="nav-tooltip-v3">{item.label}</div>
+                        </NavLink>
+                    )
                 ))}
             </nav>
 
-            {/* Footer Clock */}
-            <div className={styles.sidebarFooter}>
-                <Clock />
+            <div className="sidebar-footer-v3">
+                <NavLink to="/settings" className="nav-item-v3" title="Configurações">
+                    <Settings size={18} strokeWidth={2} />
+                    <div className="nav-tooltip-v3">Configurações</div>
+                </NavLink>
+                <div className="avatar-v3" title="Meu perfil">
+                    {initials}
+                    <div className="nav-tooltip-v3">Meu perfil</div>
+                </div>
             </div>
         </aside>
     );
