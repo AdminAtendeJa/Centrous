@@ -33,19 +33,19 @@ export default function ConversationView() {
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold truncate">{lastMsg?.contacts?.name || 'Lead WhatsApp'}</p>
           <div className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-            <span className="text-[9px] text-tertiary uppercase font-bold tracking-wider">{lastMsg?.channel}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500" style={{ width: '6px', height: '6px' }} />
+            <span className="text-9 text-tertiary uppercase font-bold tracking-wider">{lastMsg?.channel}</span>
           </div>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ overflowY: 'auto' }}>
         {messages.map(msg => (
           <div key={msg.id} className={`flex flex-col ${msg.direction === 'outbound' ? 'items-end' : 'items-start'}`}>
-            <div className={`msg-bubble-v3 ${msg.direction === 'outbound' ? 'sent' : 'received'}`} style={{maxWidth: '85%'}}>
+            <div className={`msg-bubble-v3 ${msg.direction === 'outbound' ? 'sent' : 'received'}`}>
               <p className="text-xs leading-relaxed">{msg.body}</p>
-              <span className="text-[9px] opacity-50 mt-1 block text-right">
+              <span className="text-9 opacity-50 mt-1 text-right" style={{ display: 'block' }}>
                 {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </span>
             </div>
@@ -54,20 +54,21 @@ export default function ConversationView() {
       </div>
 
       {/* Footer / Reply */}
-      <div className="p-3 border-top-v3 bg-gray-50">
+      <div className="p-3 border-top-v3" style={{ background: '#f8fafc' }}>
         {aiSuggestion && (
           <div 
             className="ai-suggestion-v3 mb-3" 
             onClick={() => setReply(aiSuggestion)}
           >
             <Sparkles size={12} className="shrink-0" />
-            <span className="text-[10px] leading-tight italic line-clamp-2">{aiSuggestion}</span>
+            <span className="text-10 leading-tight italic line-clamp-2">{aiSuggestion}</span>
           </div>
         )}
         
         <div className="relative">
           <textarea
-            className="w-full bg-white border-0.5px solid border-gray-200 rounded-md p-3 text-xs focus:ring-1 focus:ring-accent outline-none resize-none"
+            className="w-full bg-white rounded-md p-3 text-xs outline-none"
+            style={{ border: '0.5px solid var(--color-border-tertiary)', resize: 'none' }}
             placeholder="Responder..."
             rows={3}
             value={reply}
@@ -75,6 +76,7 @@ export default function ConversationView() {
           />
           <button 
             className="absolute bottom-3 right-3 btn-v3-primary p-2 h-auto"
+            style={{ height: 'auto' }}
             onClick={handleSend}
             disabled={!reply.trim()}
           >

@@ -6,6 +6,7 @@ const { supabaseAdmin } = require('../utils/supabaseAdmin');
  * Checks for provider-specific headers and org-specific secrets.
  */
 module.exports = (provider) => async (req, res, next) => {
+  if (!supabaseAdmin) return res.status(500).json({ error: 'Supabase Admin not initialized' });
   try {
     const orgId = req.params.org_id;
     if (!orgId) return res.status(400).json({ error: 'Missing organization ID' });

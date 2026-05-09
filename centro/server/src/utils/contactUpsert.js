@@ -5,6 +5,9 @@ const { supabaseAdmin } = require('./supabaseAdmin');
  * Updates existing contact with missing info.
  */
 async function contactUpsert({ org_id, phone, email, name, source_channel }) {
+  if (!supabaseAdmin) {
+    throw new Error('Supabase Admin client is not initialized. Please check your environment variables.');
+  }
   try {
     const query = supabaseAdmin
       .from('contacts')

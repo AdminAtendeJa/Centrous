@@ -16,7 +16,7 @@ export default function ConversationList() {
         </div>
         <div className="search-trigger-v3 w-full">
             <Search size={14} />
-            <input type="text" placeholder="Buscar conversas..." className="bg-transparent border-none outline-none text-[11px] ml-2 w-full" />
+            <input type="text" placeholder="Buscar conversas..." className="bg-transparent border-none outline-none text-11 ml-2 w-full" />
         </div>
       </div>
 
@@ -42,7 +42,7 @@ export default function ConversationList() {
                             </span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className={`text-[9px] font-bold uppercase ${thread.channel === 'whatsapp' ? 'text-green-600' : 'text-blue-600'}`}>
+                            <span className={`text-9 font-bold uppercase ${thread.channel === 'whatsapp' ? 'text-green-600' : 'text-blue-600'}`}>
                                 {thread.channel}
                             </span>
                             <span className="inbox-item-msg-v3">{thread.body}</span>

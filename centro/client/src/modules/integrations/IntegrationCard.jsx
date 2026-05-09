@@ -34,30 +34,31 @@ export default function IntegrationCard({ integration, credential, onConnect }) 
   return (
     <div className={`card-v3 integration-card-v3 ${isConnected ? 'card-connected-v3' : ''}`}>
       {/* Badge de status */}
-      {integration.status === 'beta' && (
-        <span className="tag-v3 tag-amber mb-2">Beta</span>
-      )}
-      {integration.status === 'coming_soon' && (
-        <span className="tag-v3 tag-zinc mb-2">Em breve</span>
-      )}
+      <div className="flex-between mb-2">
+        {integration.status === 'beta' ? (
+          <span className="tag-v3 tag-amber">Beta</span>
+        ) : integration.status === 'coming_soon' ? (
+          <span className="tag-v3 tag-zinc">Em breve</span>
+        ) : <div />}
+        {isConnected && <span className={`status-dot-v3 ${isActive ? 'dot-active-v3' : 'dot-paused-v3'}`} />}
+      </div>
 
       {/* Ícone e nome */}
-      <div className="flex gap-4 mb-4">
+      <div className="flex gap-3 mb-4">
         <div className={`integration-icon-v3 ${isConnected ? 'icon-connected-v3' : ''}`}>
-          <Icon size={20} />
+          <Icon size={18} />
         </div>
-        <div>
-          <h3 className="text-sm font-bold text-primary">{integration.name}</h3>
-          <p className="text-[11px] text-tertiary leading-tight">{integration.description}</p>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-xs font-bold text-primary truncate">{integration.name}</h3>
+          <p className="text-10 text-tertiary leading-tight truncate">{integration.description}</p>
         </div>
       </div>
 
       {/* Status de conexão */}
       {isConnected && (
         <div className="connection-meta-v3 mb-4">
-          <span className={`status-dot-v3 ${isActive ? 'dot-active-v3' : 'dot-paused-v3'}`} />
-          <span className="text-[10px] text-secondary">
-            {isActive ? 'Ativo' : 'Pausado'} · {formatDistanceToNow(new Date(credential.connected_at), { locale: ptBR, addSuffix: true })}
+          <span className="text-10 text-secondary">
+             {formatDistanceToNow(new Date(credential.connected_at), { locale: ptBR, addSuffix: true })}
           </span>
         </div>
       )}

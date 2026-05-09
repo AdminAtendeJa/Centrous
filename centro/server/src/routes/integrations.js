@@ -10,6 +10,7 @@ const webhookVerify = require('../middleware/webhookVerify');
  * POST /integrations/whatsapp/:org_id
  */
 router.post('/whatsapp/:org_id', webhookVerify('whatsapp_360dialog'), async (req, res) => {
+  if (!supabaseAdmin) return res.status(500).json({ error: 'Supabase Admin not initialized' });
   const { org_id } = req.params;
   const payload = req.body;
 
@@ -62,6 +63,7 @@ router.post('/whatsapp/:org_id', webhookVerify('whatsapp_360dialog'), async (req
  * POST /integrations/stripe/:org_id
  */
 router.post('/stripe/:org_id', webhookVerify('stripe'), async (req, res) => {
+    if (!supabaseAdmin) return res.status(500).json({ error: 'Supabase Admin not initialized' });
     const { org_id } = req.params;
     const event = req.body;
 

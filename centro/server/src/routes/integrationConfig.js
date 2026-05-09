@@ -7,6 +7,7 @@ const orgContext = require('../middleware/orgContext');
  * List all configured integrations for the org
  */
 router.get('/', orgContext, async (req, res) => {
+  if (!supabaseAdmin) return res.status(500).json({ error: 'Supabase Admin not initialized' });
   const { data, error } = await supabaseAdmin
     .from('integration_credentials')
     .select('id, provider, is_active, connected_at, last_sync_at, metadata')
@@ -20,6 +21,7 @@ router.get('/', orgContext, async (req, res) => {
  * Add or update integration credentials
  */
 router.post('/', orgContext, async (req, res) => {
+  if (!supabaseAdmin) return res.status(500).json({ error: 'Supabase Admin not initialized' });
   const { provider, credentials, metadata } = req.body;
   const organization_id = req.org_id;
 
