@@ -66,7 +66,7 @@ app.use('/api', (req, res) => {
 });
 
 // ── React Router Fallback (Debe ser la última ruta GET) ───────────────────────
-app.get('*', (req, res) => {
+app.get('(.*)', (req, res) => {
     res.sendFile(path.join(distPath, 'index.html'));
 });
 
