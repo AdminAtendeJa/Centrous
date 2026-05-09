@@ -410,3 +410,40 @@ body {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+/* --- INTEGRATIONS BAR V3 (SLIM FOOTER) --- */
+.integrations-bar-v3 {
+  height: 36px;
+  background-color: var(--color-background-primary);
+  border-top: 0.5px solid var(--color-border-primary);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.integrations-bar-v3 .text-10 {
+  font-size: 9px;
+  letter-spacing: 0.05em;
+}
+
+.integrations-bar-v3 .btn-v3-pill {
+  padding: 0 8px !important;
+  height: 20px !important;
+  font-size: 9px !important;
+  display: flex;
+  align-items: center;
+  background-color: transparent;
+  border: 0.5px solid var(--color-border-primary);
+}
+
+.integrations-bar-v3 .btn-v3-pill.active {
+  background-color: var(--color-accent-light);
+  border-color: var(--color-accent);
+}
+
+/* Fix main canvas to fit footer */
+.main-canvas-v3 {
+  overflow: hidden;
+}
