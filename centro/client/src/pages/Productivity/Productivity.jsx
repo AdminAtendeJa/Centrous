@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit3, Save, X, Timer, RotateCcw, Play, Pause, Search } from 'lucide-react';
+import { Plus, Trash2, RotateCcw, Play, Pause, Search, Clock, Zap } from 'lucide-react';
 import { useNotesStore } from '../../store/index.js';
 
 function PomodoroV3() {
@@ -31,41 +31,29 @@ function PomodoroV3() {
     const progress = (1 - seconds / DURATIONS[mode]) * 100;
 
     return (
-        <div className="card-v3 pomodoro-v3">
-            <div className="section-header-v3 mb-4">
-                <span className="section-title-v3">Foco Pomodoro</span>
-                <button className="btn-icon-v3" onClick={() => { setRunning(false); setSeconds(DURATIONS[mode]); }}>
+        <div className="card-v3 pomodoro-v3" style={{ textAlign: 'center', background: mode === 'work' ? 'var(--color-accent)' : 'var(--color-success)', color: '#fff', border: 'none' }}>
+            <div className="flex-between mb-4">
+                <span className="text-10 font-bold uppercase tracking-wider opacity-80">{mode === 'work' ? 'Foco' : 'Pausa'}</span>
+                <button className="btn-icon-v3" style={{ color: '#fff' }} onClick={() => { setRunning(false); setSeconds(DURATIONS[mode]); }}>
                     <RotateCcw size={12} />
                 </button>
             </div>
 
-            <div className="pomo-timer-v3">
-                <svg viewBox="0 0 100 100" className="pomo-svg-v3">
-                    <circle cx="50" cy="50" r="45" fill="none" stroke="var(--color-border-tertiary)" strokeWidth="4" />
-                    <circle
-                        cx="50" cy="50" r="45" fill="none"
-                        stroke={mode === 'work' ? '#1a1a2e' : '#10b981'}
-                        strokeWidth="4"
-                        strokeLinecap="round"
-                        strokeDasharray="283"
-                        strokeDashoffset={`${283 * (1 - progress / 100)}`}
-                        style={{ transition: 'stroke-dashoffset 1s linear' }}
-                    />
-                </svg>
-                <div className="pomo-label-v3">
-                    <span className="pomo-time-v3">{mins}:{secs}</span>
-                    <span className="pomo-mode-v3">{mode.toUpperCase()}</span>
-                </div>
+            <div className="pomo-timer-v3 mb-6">
+                <div className="pomo-time-v3" style={{ fontSize: '42px', fontWeight: '800', letterSpacing: '-2px' }}>{mins}:{secs}</div>
             </div>
 
-            <div className="pomo-controls-v3">
-                <button className="btn-v3-primary w-full" onClick={() => setRunning((r) => !r)}>
-                    {running ? <Pause size={14} /> : <Play size={14} />}
-                    {running ? 'Pausar' : 'Iniciar'}
+            <div className="pomo-controls-v3 flex flex-col gap-2">
+                <button 
+                    className="w-full h-10 rounded-lg bg-white font-bold text-11" 
+                    style={{ color: mode === 'work' ? 'var(--color-accent)' : 'var(--color-success)' }}
+                    onClick={() => setRunning((r) => !r)}
+                >
+                    {running ? 'PAUSAR' : 'INICIAR CICLO'}
                 </button>
-                <div className="pomo-modes-v3">
-                    <button onClick={() => setMode('work')} className={mode === 'work' ? 'active' : ''}>Foco</button>
-                    <button onClick={() => setMode('break')} className={mode === 'break' ? 'active' : ''}>Pausa</button>
+                <div className="flex justify-center gap-4 mt-2">
+                    <button onClick={() => setMode('work')} className={`text-10 font-bold opacity-60 ${mode === 'work' ? 'opacity-100 border-b-2 border-white' : ''}`}>Trabalho</button>
+                    <button onClick={() => setMode('break')} className={`text-10 font-bold opacity-60 ${mode === 'break' ? 'opacity-100 border-b-2 border-white' : ''}`}>Descanso</button>
                 </div>
             </div>
         </div>
@@ -76,14 +64,19 @@ export default function Productivity() {
     const { notes, addNote, updateNote, deleteNote } = useNotesStore();
     const [searchTerm, setSearchTerm] = useState('');
 
+    const filteredNotes = notes.filter(n => 
+        n.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        n.content.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     return (
-        <div className="productivity-v3 animate-in">
-            <div className="dashboard-main-v3">
+        <div className="productivity-v3 animate-in" style={{ padding: '16px' }}>
+            <div className="dashboard-main-v3" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '20px' }}>
                 {/* Notes Section */}
                 <div className="section-v3">
-                    <div className="toolbar-v3 mb-4">
+                    <div className="section-header-v3">
                         <div className="search-box-v3">
-                            <Search size={14} />
+                            <Search size={12} />
                             <input 
                                 type="text" 
                                 placeholder="Pesquisar notas..." 
@@ -91,17 +84,17 @@ export default function Productivity() {
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <button className="btn-v3-primary" onClick={() => addNote({ title: 'Nova Nota', content: '' })}>
-                            <Plus size={14} /> Nova Nota
+                        <button className="btn-v3-primary" onClick={() => addNote({ title: 'Sem título', content: '' })}>
+                            <Plus size={12} /> Nova Nota
                         </button>
                     </div>
 
-                    <div className="notes-grid-v3">
-                        {notes.map(note => (
-                            <div key={note.id} className="card-v3 note-card-v3">
-                                <div className="note-header-v3">
+                    <div className="p-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+                        {filteredNotes.map(note => (
+                            <div key={note.id} className="card-v3 note-card-v3 flex flex-col gap-2">
+                                <div className="flex-between">
                                     <input 
-                                        className="note-title-v3"
+                                        className="text-13 font-bold text-primary bg-transparent border-none outline-none w-full"
                                         value={note.title}
                                         onChange={(e) => updateNote(note.id, { title: e.target.value })}
                                     />
@@ -110,27 +103,45 @@ export default function Productivity() {
                                     </button>
                                 </div>
                                 <textarea 
-                                    className="note-body-v3"
+                                    className="text-11 text-secondary bg-transparent border-none outline-none resize-none h-24"
                                     value={note.content}
-                                    placeholder="Escreva algo..."
+                                    placeholder="Comece a escrever..."
                                     onChange={(e) => updateNote(note.id, { content: e.target.value })}
                                 />
-                                <div className="note-footer-v3">
-                                    Editado {new Date(note.updatedAt).toLocaleDateString()}
+                                <div className="flex-between mt-auto pt-2 border-top-v3">
+                                    <span className="text-9 text-tertiary">Editado {new Date(note.updatedAt).toLocaleDateString()}</span>
+                                    <Zap size={10} className="text-tertiary" />
                                 </div>
                             </div>
                         ))}
+                        {filteredNotes.length === 0 && (
+                            <div className="p-12 text-center text-tertiary text-11 col-span-full">Nenhuma nota encontrada.</div>
+                        )}
                     </div>
                 </div>
 
                 {/* Side Section */}
-                <div className="section-v3">
+                <div className="flex flex-col gap-4">
                     <PomodoroV3 />
                     <div className="card-v3">
-                        <span className="section-title-v3 mb-2 block" style={{fontSize: 11}}>Insights de Foco</span>
-                        <p style={{fontSize: 10, color: 'var(--color-text-tertiary)', lineHeight: 1.5}}>
-                            Você completou 4 ciclos de foco hoje. Seu pico de produtividade foi às 10:30.
-                        </p>
+                        <div className="flex items-center gap-2 mb-3">
+                            <Clock size={14} className="text-accent" />
+                            <span className="text-10 font-bold uppercase text-secondary">Tempo de Foco</span>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <div className="flex-between mb-1">
+                                    <span className="text-10 text-secondary">Meta diária</span>
+                                    <span className="text-10 font-bold">75%</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-background-tertiary rounded-full overflow-hidden">
+                                    <div className="h-full bg-accent" style={{ width: '75%' }} />
+                                </div>
+                            </div>
+                            <p className="text-10 text-tertiary leading-relaxed">
+                                Seu pico de produtividade foi identificado entre as **10:00 e 11:30**. 
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
