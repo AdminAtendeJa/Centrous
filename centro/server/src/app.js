@@ -49,6 +49,11 @@ app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' }));
 app.use(express.json());
 app.use(morgan('dev'));
 
+// ── Static Files (React Build) ───────────────────────────────────────────────
+// Intentar servir desde ../../client/dist (local) o ../client/dist (Docker)
+const distPath = path.join(__dirname, '../../client/dist');
+app.use(express.static(distPath));
+
 // ── Routes ───────────────────────────────────────────────────────────────────
 app.use('/api/notion', require('./routes/notion.routes'));
 app.use('/api/n8n', require('./routes/n8n.routes'));
