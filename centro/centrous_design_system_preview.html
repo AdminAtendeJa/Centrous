@@ -1,0 +1,340 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans,system-ui);color:var(--color-text-primary);background:transparent}
+.wrap{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+.label{font-size:11px;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;font-weight:500}
+
+/* ── DESKTOP MOCKUP ── */
+.desktop-frame{border:0.5px solid var(--color-border-secondary);border-radius:12px;overflow:hidden;background:var(--color-background-secondary)}
+.d-shell{display:grid;grid-template-columns:52px 1fr;height:480px}
+.d-sidebar{background:#0f0f12;display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:6px}
+.d-logo{width:32px;height:32px;border-radius:8px;background:#6366f1;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;margin-bottom:10px;letter-spacing:-.5px}
+.d-nav{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#6b7280;font-size:16px;cursor:pointer;transition:.15s}
+.d-nav:hover,.d-nav.on{background:#1f1f27;color:#e5e7eb}
+.d-nav.on{color:#a5b4fc}
+.d-sep{width:24px;height:0.5px;background:#2a2a35;margin:4px 0}
+.d-main{display:flex;flex-direction:column;overflow:hidden;background:var(--color-background-primary)}
+
+.d-topbar{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:0.5px solid var(--color-border-tertiary);background:var(--color-background-primary)}
+.d-title{font-size:13px;font-weight:500;flex:1}
+.d-pill{font-size:10px;padding:3px 9px;border-radius:20px;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary);cursor:pointer}
+.d-pill.on{background:#6366f1;color:#fff;border-color:transparent}
+.d-avatar{width:24px;height:24px;border-radius:50%;background:#6366f1;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#fff}
+
+.d-content{flex:1;padding:14px;display:flex;flex-direction:column;gap:12px;overflow:hidden}
+.d-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.kpi{background:var(--color-background-secondary);border-radius:8px;padding:10px 12px}
+.kpi-label{font-size:10px;color:var(--color-text-secondary);margin-bottom:4px}
+.kpi-value{font-size:18px;font-weight:500;line-height:1}
+.kpi-delta{font-size:10px;margin-top:3px}
+.kpi-up{color:#16a34a}.kpi-down{color:#dc2626}.kpi-flat{color:var(--color-text-secondary)}
+
+.d-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1}
+.card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:10px;padding:10px 12px;overflow:hidden}
+.card-head{font-size:11px;font-weight:500;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.card-head-action{font-size:10px;color:#6366f1;cursor:pointer}
+
+/* mini chart bars */
+.chart-bars{display:flex;align-items:flex-end;gap:3px;height:56px}
+.bar{flex:1;border-radius:3px 3px 0 0;min-width:6px}
+.bar-main{background:#6366f1}.bar-alt{background:#e0e7ff}
+
+/* lead list */
+.lead-row{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.lead-row:last-child{border-bottom:none}
+.lead-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.lead-name{font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lead-val{font-size:10px;color:var(--color-text-secondary)}
+.lead-tag{font-size:9px;padding:2px 5px;border-radius:4px;font-weight:500}
+.tag-green{background:#dcfce7;color:#15803d}
+.tag-amber{background:#fef3c7;color:#92400e}
+.tag-red{background:#fee2e2;color:#991b1b}
+
+/* task list */
+.task-item{display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.task-item:last-child{border-bottom:none}
+.task-check{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--color-border-secondary);flex-shrink:0}
+.task-check.done{background:#6366f1;border-color:#6366f1}
+.task-text{font-size:11px;flex:1}.task-text.done{text-decoration:line-through;color:var(--color-text-secondary)}
+.task-badge{font-size:9px;padding:1px 5px;border-radius:4px}
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-gray{background:var(--color-background-secondary);color:var(--color-text-secondary)}
+
+.d-intbar{padding:8px 14px;border-top:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:6px;background:var(--color-background-secondary)}
+.int-chip{font-size:9px;padding:2px 7px;border-radius:20px;border:0.5px solid var(--color-border-tertiary);color:var(--color-text-secondary);background:var(--color-background-primary)}
+.int-chip.on{background:#6366f1;color:#fff;border-color:transparent}
+.int-label{font-size:10px;color:var(--color-text-secondary);flex:1}
+
+/* ── MOBILE MOCKUP ── */
+.mobile-wrap{display:flex;flex-direction:column;gap:10px}
+.phone-frame{background:#0f0f12;border-radius:32px;padding:10px;max-width:200px;margin:0 auto;border:1px solid #2a2a35}
+.phone-screen{background:var(--color-background-primary);border-radius:24px;overflow:hidden}
+.phone-notch{height:18px;background:#0f0f12;display:flex;align-items:center;justify-content:center}
+.notch-pill{width:50px;height:6px;background:#1f1f27;border-radius:3px}
+
+.m-topbar{padding:10px 12px 8px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;gap:8px}
+.m-logo{width:26px;height:26px;border-radius:7px;background:#6366f1;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff}
+.m-title{font-size:11px;font-weight:500;flex:1}
+.m-bell{width:26px;height:26px;border-radius:6px;background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--color-text-secondary);position:relative}
+.m-bell-dot{position:absolute;top:5px;right:5px;width:5px;height:5px;border-radius:50%;background:#ef4444;border:1px solid var(--color-background-primary)}
+
+.m-kpi{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 12px 0}
+.m-kpi-card{background:var(--color-background-secondary);border-radius:8px;padding:8px 10px}
+.m-kpi-label{font-size:9px;color:var(--color-text-secondary);margin-bottom:3px}
+.m-kpi-val{font-size:16px;font-weight:500}
+.m-kpi-delta{font-size:9px;margin-top:2px;color:#16a34a}
+
+.m-section{padding:8px 12px 0}
+.m-section-head{font-size:10px;font-weight:500;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.m-section-more{font-size:9px;color:#6366f1}
+
+.m-msg{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary)}
+.m-msg:last-child{border-bottom:none}
+.m-ava{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:#fff;flex-shrink:0}
+.m-msg-body{flex:1;min-width:0}
+.m-msg-name{font-size:10px;font-weight:500;margin-bottom:1px}
+.m-msg-preview{font-size:9px;color:var(--color-text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.m-msg-time{font-size:9px;color:var(--color-text-secondary)}
+.m-unread{width:5px;height:5px;border-radius:50%;background:#6366f1}
+
+.m-bottombar{display:flex;align-items:center;justify-content:space-around;padding:8px 0 10px;border-top:0.5px solid var(--color-border-tertiary)}
+.m-tab{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;min-width:40px}
+.m-tab-icon{font-size:16px;color:var(--color-text-secondary)}
+.m-tab.on .m-tab-icon{color:#6366f1}
+.m-tab-label{font-size:8px;color:var(--color-text-secondary)}
+.m-tab.on .m-tab-label{color:#6366f1;font-weight:500}
+.m-tab-dot{width:3px;height:3px;border-radius:50%;background:#ef4444;margin-top:-2px}
+
+/* color tokens preview */
+.palette{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.swatch{width:24px;height:24px;border-radius:6px}
+</style>
+
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Centrous V3 — prévia do design system com mockup desktop e mobile lado a lado</h2>
+
+<div class="wrap">
+
+  <!-- DESKTOP -->
+  <div>
+    <div class="label">Desktop — Shell V3</div>
+    <div class="desktop-frame">
+      <div class="d-shell">
+        <!-- Sidebar escura -->
+        <div class="d-sidebar">
+          <div class="d-logo">Ct</div>
+          <div class="d-nav on"><i class="ti ti-layout-dashboard" aria-hidden="true"></i></div>
+          <div class="d-nav"><i class="ti ti-checkup-list" aria-hidden="true"></i></div>
+          <div class="d-nav"><i class="ti ti-message-circle" aria-hidden="true"></i></div>
+          <div class="d-nav"><i class="ti ti-users" aria-hidden="true"></i></div>
+          <div class="d-sep"></div>
+          <div class="d-nav"><i class="ti ti-chart-bar" aria-hidden="true"></i></div>
+          <div class="d-nav"><i class="ti ti-plug" aria-hidden="true"></i></div>
+          <div class="d-nav"><i class="ti ti-folder" aria-hidden="true"></i></div>
+          <div class="d-sep" style="margin-top:auto"></div>
+          <div class="d-nav"><i class="ti ti-settings" aria-hidden="true"></i></div>
+        </div>
+        <!-- Main -->
+        <div class="d-main">
+          <div class="d-topbar">
+            <span class="d-title">Dashboard</span>
+            <div class="d-pill on">Hoje</div>
+            <div class="d-pill">Semana</div>
+            <div class="d-pill">Mês</div>
+            <div class="d-avatar">JP</div>
+          </div>
+          <div class="d-content">
+            <!-- KPIs -->
+            <div class="d-kpi">
+              <div class="kpi">
+                <div class="kpi-label">Receita</div>
+                <div class="kpi-value">R$48k</div>
+                <div class="kpi-delta kpi-up">↑ 12% vs mês passado</div>
+              </div>
+              <div class="kpi">
+                <div class="kpi-label">Leads ativos</div>
+                <div class="kpi-value">127</div>
+                <div class="kpi-delta kpi-up">↑ 8 novos hoje</div>
+              </div>
+              <div class="kpi">
+                <div class="kpi-label">Conversão</div>
+                <div class="kpi-value">23%</div>
+                <div class="kpi-delta kpi-down">↓ 2% vs meta</div>
+              </div>
+            </div>
+            <!-- Grid inferior -->
+            <div class="d-grid2" style="flex:1">
+              <!-- Gráfico fake -->
+              <div class="card">
+                <div class="card-head">Fluxo de caixa <span class="card-head-action">Ver tudo</span></div>
+                <div class="chart-bars">
+                  <div class="bar bar-alt" style="height:30%"></div>
+                  <div class="bar bar-main" style="height:55%"></div>
+                  <div class="bar bar-alt" style="height:40%"></div>
+                  <div class="bar bar-main" style="height:70%"></div>
+                  <div class="bar bar-alt" style="height:50%"></div>
+                  <div class="bar bar-main" style="height:85%"></div>
+                  <div class="bar bar-alt" style="height:60%"></div>
+                  <div class="bar bar-main" style="height:95%"></div>
+                  <div class="bar bar-alt" style="height:75%"></div>
+                  <div class="bar bar-main" style="height:80%"></div>
+                </div>
+                <div style="display:flex;gap:8px;margin-top:6px">
+                  <span style="font-size:9px;color:var(--color-text-secondary);display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#6366f1;display:inline-block"></span>Receita</span>
+                  <span style="font-size:9px;color:var(--color-text-secondary);display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#e0e7ff;display:inline-block"></span>Despesa</span>
+                </div>
+              </div>
+              <!-- Pipeline -->
+              <div class="card">
+                <div class="card-head">Pipeline CRM <span class="card-head-action">+ Novo</span></div>
+                <div class="lead-row">
+                  <div class="lead-dot" style="background:#6366f1"></div>
+                  <span class="lead-name">Acme Corp</span>
+                  <span class="lead-val">R$12k</span>
+                  <span class="lead-tag tag-green">Proposta</span>
+                </div>
+                <div class="lead-row">
+                  <div class="lead-dot" style="background:#f59e0b"></div>
+                  <span class="lead-name">TechBrasil Ltda</span>
+                  <span class="lead-val">R$8k</span>
+                  <span class="lead-tag tag-amber">Negoc.</span>
+                </div>
+                <div class="lead-row">
+                  <div class="lead-dot" style="background:#6b7280"></div>
+                  <span class="lead-name">Nova Energia S.A.</span>
+                  <span class="lead-val">R$22k</span>
+                  <span class="lead-tag tag-amber">Qualif.</span>
+                </div>
+                <div class="lead-row">
+                  <div class="lead-dot" style="background:#10b981"></div>
+                  <span class="lead-name">Grupo Meridian</span>
+                  <span class="lead-val">R$5k</span>
+                  <span class="lead-tag tag-green">Ganho</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Integrations bar -->
+          <div class="d-intbar">
+            <span class="int-label">Integrações</span>
+            <div class="int-chip on">WhatsApp</div>
+            <div class="int-chip on">Gmail</div>
+            <div class="int-chip on">Stripe</div>
+            <div class="int-chip">Notion</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE -->
+  <div>
+    <div class="label">Mobile — Bottom nav</div>
+    <div class="mobile-wrap">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="phone-notch"><div class="notch-pill"></div></div>
+          <!-- Topbar -->
+          <div class="m-topbar">
+            <div class="m-logo">Ct</div>
+            <span class="m-title">Dashboard</span>
+            <div class="m-bell">
+              <i class="ti ti-bell" style="font-size:13px" aria-hidden="true"></i>
+              <div class="m-bell-dot"></div>
+            </div>
+          </div>
+          <!-- KPIs 2x2 -->
+          <div class="m-kpi">
+            <div class="m-kpi-card">
+              <div class="m-kpi-label">Receita</div>
+              <div class="m-kpi-val">R$48k</div>
+              <div class="m-kpi-delta">↑ 12%</div>
+            </div>
+            <div class="m-kpi-card">
+              <div class="m-kpi-label">Leads</div>
+              <div class="m-kpi-val">127</div>
+              <div class="m-kpi-delta" style="color:#6366f1">8 novos</div>
+            </div>
+          </div>
+          <!-- Inbox preview -->
+          <div class="m-section">
+            <div class="m-section-head">Inbox <span class="m-section-more">Ver tudo</span></div>
+            <div class="m-msg">
+              <div class="m-ava" style="background:#6366f1">MC</div>
+              <div class="m-msg-body">
+                <div class="m-msg-name">Marina Costa</div>
+                <div class="m-msg-preview">Fechei com o cliente! Vamos alinhar...</div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+                <span class="m-msg-time">10:32</span>
+                <div class="m-unread"></div>
+              </div>
+            </div>
+            <div class="m-msg">
+              <div class="m-ava" style="background:#0F6E56">AL</div>
+              <div class="m-msg-body">
+                <div class="m-msg-name">André Lima</div>
+                <div class="m-msg-preview">Relatório pronto, preciso da sua...</div>
+              </div>
+              <div><span class="m-msg-time">9:14</span></div>
+            </div>
+            <div class="m-msg">
+              <div class="m-ava" style="background:#993C1D">PT</div>
+              <div class="m-msg-body">
+                <div class="m-msg-name">Paula Teixeira</div>
+                <div class="m-msg-preview">Quando tem disponibilidade pra...</div>
+              </div>
+              <div><span class="m-msg-time">Ontem</span></div>
+            </div>
+          </div>
+          <!-- Bottom nav -->
+          <div class="m-bottombar">
+            <div class="m-tab on">
+              <i class="ti ti-layout-dashboard m-tab-icon" aria-hidden="true"></i>
+              <span class="m-tab-label">Início</span>
+            </div>
+            <div class="m-tab">
+              <i class="ti ti-message-circle m-tab-icon" aria-hidden="true"></i>
+              <span class="m-tab-label">Inbox</span>
+              <div class="m-tab-dot"></div>
+            </div>
+            <div class="m-tab">
+              <i class="ti ti-users m-tab-icon" aria-hidden="true"></i>
+              <span class="m-tab-label">CRM</span>
+            </div>
+            <div class="m-tab">
+              <i class="ti ti-chart-bar m-tab-icon" aria-hidden="true"></i>
+              <span class="m-tab-label">Finanças</span>
+            </div>
+            <div class="m-tab">
+              <i class="ti ti-dots m-tab-icon" aria-hidden="true"></i>
+              <span class="m-tab-label">Mais</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paleta de cores -->
+      <div style="padding:0 4px">
+        <div class="label" style="margin-bottom:6px">Paleta — tokens de cor</div>
+        <div class="palette">
+          <div class="swatch" style="background:#6366f1" title="Indigo primário"></div>
+          <div class="swatch" style="background:#4f46e5" title="Indigo escuro"></div>
+          <div class="swatch" style="background:#e0e7ff" title="Indigo claro"></div>
+          <div class="swatch" style="background:#0f0f12" title="Sidebar bg"></div>
+          <div class="swatch" style="background:#1f1f27" title="Sidebar hover"></div>
+          <div class="swatch" style="background:#f8f8f8" title="Surface claro"></div>
+          <div class="swatch" style="background:#10b981" title="Sucesso"></div>
+          <div class="swatch" style="background:#f59e0b" title="Alerta"></div>
+          <div class="swatch" style="background:#ef4444" title="Erro"></div>
+        </div>
+        <div style="font-size:10px;color:var(--color-text-secondary);margin-top:6px;line-height:1.5">
+          Sidebar: #0f0f12 · Accent: #6366f1<br>
+          Bordas: 0.5px · Radius: 8–12px<br>
+          Font: Inter (desktop) · System (mobile)
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
