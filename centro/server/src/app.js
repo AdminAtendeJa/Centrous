@@ -37,24 +37,20 @@ io.use(async (socket, next) => {
 
 io.on('connection', (socket) => {
     console.log(`🔌 App cliente conectada vía WebSocket: ${socket.id} (User: ${socket.user.id})`);
-    
-    // Unirse a una sala privada del usuario para recibir sus notificaciones
     socket.join(`user:${socket.user.id}`);
-    
     socket.on('disconnect', () => console.log(`❌ Cliente WS desconectado: ${socket.id}`));
 });
 
-// ── Middleware ──────────────────────────────────────────────────────────────
+// ── Middleware Global ────────────────────────────────────────────────────────
 app.use(cors({ origin: process.env.ALLOWED_ORIGIN || '*' }));
 app.use(express.json());
 app.use(morgan('dev'));
 
-// ── Static Files (React Build) ───────────────────────────────────────────────
-// Intentar servir desde ../../client/dist (local) o ../client/dist (Docker)
+// ── Static Files (Frontend Assets) ──────────────────────────────────────────
 const distPath = path.join(__dirname, '../../client/dist');
 app.use(express.static(distPath));
 
-// ── Routes ───────────────────────────────────────────────────────────────────
+// ── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/notion', require('./routes/notion.routes'));
 app.use('/api/n8n', require('./routes/n8n.routes'));
 app.use('/api/webhooks', require('./routes/webhooks.routes'));
@@ -63,50 +59,31 @@ app.use('/api/social', require('./routes/social.routes'));
 app.use('/api/integrations', require('./routes/integrations.routes'));
 app.use('/api/crm', require('./routes/crm.routes'));
 app.use('/api/tasks', require('./routes/tasks.routes'));
-app.use('/api/user', require('./routes/user.routes'));
-app.use('/api/ai-brain', require('./routes/ai_brain.routes'));
-app.use('/api/supabase-meta', require('./routes/supabase_meta.routes'));
-app.use('/api/developer', require('./routes/api_keys.routes'));
-app.use('/api/external', require('./routes/external.routes'));
-
-// Health check
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// ── Global Error Handler ─────────────────────────────────────────────────────
-app.use((err, req, res, next) => {
-    console.error('[ERROR]', err.message, err.stack);
-    res.status(err.status || 500).json({
-        error: true,
-        message: err.message || 'Error interno del servidor',
-        status: err.status || 500,
-    });
-});
-
-// ── Serve React Frontend (Production) ────────────────────────────────────────
-app.use(express.static(path.join(__dirname, '../../client/dist')));
 
 // ── 404 para la API ──────────────────────────────────────────────────────────
 app.use('/api', (req, res) => {
     res.status(404).json({ error: true, message: 'Ruta API no encontrada' });
 });
 
-// ── React Router Fallback ────────────────────────────────────────────────────
-app.use((req, res, next) => {
-    if (req.method === 'GET') {
-        res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
-    } else {
-        next();
-    }
+// ── React Router Fallback (Debe ser la última ruta GET) ───────────────────────
+app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+});
+
+// ── Error Handler ────────────────────────────────────────────────────────────
+app.use((err, req, res, next) => {
+    console.error('💥 Error no manejado:', err);
+    res.status(err.status || 500).json({
+        error: true,
+        message: err.message || 'Error interno del servidor',
+    });
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
     console.log(`✅ Centro Backend corriendo en http://localhost:${PORT}`);
-    if (!process.env.NOTION_API_KEY) console.warn('⚠️  NOTION_API_KEY no configurada — mostrando demo');
-    if (!process.env.N8N_API_KEY) console.warn('⚠️  N8N_API_KEY no configurada — mostrando demo');
+    console.log(`📂 Sirviendo frontend desde: ${distPath}`);
 });
 
 module.exports = app;
