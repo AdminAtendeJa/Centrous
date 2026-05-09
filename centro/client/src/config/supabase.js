@@ -33,17 +33,17 @@ const createSafeClient = (url, key, name) => {
     return createClient(url, key);
 };
 
-// Cliente para Auth (Predefinido)
+// Cliente para Auth (Predefinido - Siempre necesario para entrar)
 export const supabase = createSafeClient(masterUrl, masterKey, 'Master/Auth');
 
-// --- CONFIGURACIÓN DINÁMICA (DATOS) ---
+// --- CONFIGURACIÓN DINÁMICA (DATOS DEL USUARIO) ---
 const savedDataUrl = localStorage.getItem('active_sb_url');
 const savedDataKey = localStorage.getItem('active_sb_key');
 
-// El cliente de datos usa el guardado o cae al maestro
+// IMPORTANTE: Ya NO cae al maestro. Si no hay configuración, está vacío.
 export let dataSupabase = createSafeClient(
-    savedDataUrl || masterUrl, 
-    savedDataKey || masterKey,
+    savedDataUrl, 
+    savedDataKey,
     'Data/Dynamic'
 );
 
