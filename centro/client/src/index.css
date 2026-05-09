@@ -748,3 +748,131 @@ tbody tr:hover td {
 .w-full {
   width: 100%;
 }
+
+/* --- MOBILE OPTIMIZATION --- */
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0px;
+    --header-height: 60px;
+  }
+
+  body {
+    font-size: 14px;
+  }
+
+  .page-content {
+    margin-left: 0 !important;
+    padding: 16px;
+    padding-bottom: 100px; /* Space for bottom nav */
+  }
+
+  .page-header h1 {
+    font-size: 20px;
+  }
+
+  /* Hide desktop sidebar */
+  aside.sidebar {
+    display: none !important;
+  }
+
+  /* Grid stacking */
+  .grid-2, .grid-3, .grid-4 {
+    grid-template-columns: 1fr !important;
+    gap: 12px;
+  }
+
+  /* Card optimizations */
+  .card {
+    padding: 16px;
+  }
+
+  /* Modal/Drawer full screen on mobile */
+  .modal, .drawer-right {
+    max-width: 100vw;
+    border-radius: 0;
+  }
+
+  .drawer-right {
+    width: 100vw;
+  }
+
+  /* Mobile Bottom Navigation */
+  .mobile-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 10px;
+    z-index: 999;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    flex: 1;
+    transition: var(--transition);
+  }
+
+  .mobile-nav-item.active {
+    color: var(--color-primary-light);
+  }
+
+  .mobile-nav-item svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* Mobile Header */
+  .mobile-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--header-height);
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    z-index: 998;
+  }
+
+  .mobile-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: 16px;
+    color: var(--text-primary);
+  }
+
+  .mobile-logo span {
+    color: var(--color-primary-light);
+  }
+}
+
+/* Hide mobile elements on desktop */
+@media (min-width: 769px) {
+  .mobile-nav, .mobile-header {
+    display: none !important;
+  }
+}
