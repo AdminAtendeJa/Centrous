@@ -1,43 +1,52 @@
-import { Bell, Command, Plus, ChevronDown } from 'lucide-react';
+import { Search, Bell, Plus, Users } from 'lucide-react';
+import { useAuthStore } from '../../store/index.js';
 
 export default function TopBar({ title }) {
+    const { user } = useAuthStore();
+    const initials = user?.email?.substring(0, 2).toUpperCase() || 'AD';
+
     return (
         <header className="topbar-v3">
-            <div className="topbar-left-v3">
-                <span className="view-title-v3">{title}</span>
-                <div className="view-badge-v3">LIVE</div>
+            <div className="flex items-center gap-4">
+                <span className="text-13 font-bold text-primary uppercase tracking-tight">{title || 'Painel'}</span>
+                <div className="flex items-center gap-1 ml-4">
+                    <button className="btn-v3-pill active">Visão geral</button>
+                    <button className="btn-v3-pill">Projetos</button>
+                    <button className="btn-v3-pill">Finanças</button>
+                </div>
             </div>
 
-            <div className="topbar-right-v3">
-                {/* Search Trigger */}
-                <div className="search-trigger-v3">
-                    <Command size={14} />
-                    <span>Busca rápida...</span>
-                    <kbd>⌘K</kbd>
+            <div className="flex items-center gap-4">
+                <div className="search-box-v3" style={{ width: '240px', height: '30px' }}>
+                    <Search size={12} className="text-tertiary" />
+                    <input type="text" placeholder="Busca rápida... (⌘K)" className="text-11" />
                 </div>
 
-                {/* Quick Action Button */}
-                <button className="quick-action-btn-v3">
-                    <Plus size={14} />
-                    <span>Ação Rápida</span>
-                    <ChevronDown size={12} />
-                </button>
-
-                {/* Notifications */}
-                <button className="btn-icon-v3">
-                    <Bell size={18} />
-                    <div className="notif-dot-v3" />
-                </button>
-
-                <div className="topbar-divider-v3" />
-
-                {/* User Avatar */}
-                <div className="user-profile-v3">
-                    <div className="user-info-v3">
-                        <span className="user-name-v3">Victor M.</span>
-                        <span className="user-role-v3">Admin</span>
+                <div className="flex items-center gap-2">
+                    <div className="flex -space-x-2">
+                        <div className="w-6 h-6 rounded-full bg-indigo-500 border-2 border-white flex-center text-8 font-bold text-white">JP</div>
+                        <div className="w-6 h-6 rounded-full bg-emerald-500 border-2 border-white flex-center text-8 font-bold text-white">MC</div>
+                        <div className="w-6 h-6 rounded-full bg-orange-500 border-2 border-white flex-center text-8 font-bold text-white">AL</div>
                     </div>
-                    <div className="user-avatar-v3">VM</div>
+                    <button className="btn-v3-secondary" style={{ height: '26px', padding: '0 10px', fontSize: '10px' }}>
+                        <Plus size={10} /> Convidar
+                    </button>
+                </div>
+
+                <div className="h-4 w-px bg-border-tertiary mx-1" />
+
+                <button className="btn-icon-v3">
+                    <Bell size={16} className="text-secondary" />
+                </button>
+
+                <div className="flex items-center gap-2 ml-2">
+                    <div className="text-right">
+                        <div className="text-10 font-bold text-primary leading-none">Victor M.</div>
+                        <div className="text-9 text-tertiary font-medium">ADMIN</div>
+                    </div>
+                    <div className="w-8 h-8 rounded-lg bg-background-tertiary flex-center text-11 font-bold text-secondary border-v3">
+                        {initials}
+                    </div>
                 </div>
             </div>
         </header>

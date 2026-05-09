@@ -1,130 +1,140 @@
-import React from 'react';
-import { 
-    Users, ArrowRight, Plus, 
-    TrendingUp, TrendingDown,
-    DollarSign, Briefcase
-} from 'lucide-react';
-import { useTasksStore, useCRMStore } from '../../store/index.js';
+import { TrendingUp, CheckCircle2, Clock, Calendar, Users, ArrowRight, Plus, MoreHorizontal } from 'lucide-react';
+import { useCRMStore, useTasksStore } from '../../store/index.js';
 
 export default function Dashboard() {
-    const { tasks, toggleTask } = useTasksStore();
     const { leads } = useCRMStore();
-    
-    // KPI Data (Derived from real state)
+    const { tasks, toggleTask } = useTasksStore();
+
     const stats = [
-        { label: 'Receita Est.', value: 'R$48k', delta: '↑ 12% vs mês anterior', trend: 'up' },
-        { label: 'Leads Ativos', value: leads.length, delta: '↑ 8 novos hoje', trend: 'up' },
-        { label: 'Conversão', value: '23%', delta: '↓ 2% vs meta', trend: 'down' },
+        { label: 'Tarefas concluídas', value: '12', delta: '↑ 3 a mais que semana passada', trend: 'up' },
+        { label: 'Reuniões', value: '4', delta: '↓ 1 a menos', trend: 'down' },
+        { label: 'Projetos ativos', value: '3', delta: 'sem alteração', trend: 'neutral' },
     ];
 
-    const pipelineLeads = leads.slice(0, 4);
+    const todayTasks = tasks.slice(0, 5);
 
     return (
-        <div className="dashboard-v3 animate-in" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
-            {/* Executive KPIs */}
-            <div className="stat-grid-v3 no-padding">
+        <div className="dashboard-v3 animate-in">
+            {/* Stats Header */}
+            <div className="flex-between mb-6">
+                <div className="flex flex-col">
+                    <h1 className="text-18 font-extrabold text-primary tracking-tight">Bom dia, Victor</h1>
+                    <p className="text-11 text-tertiary font-medium">Aqui está o que está acontecendo com seus projetos esta semana.</p>
+                </div>
+                <button className="btn-v3-primary shadow-indigo">
+                    <Plus size={14} /> Novo Projeto
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
                 {stats.map((stat, i) => (
-                    <div key={i} className="kpi-card-v3">
-                        <div className="kpi-label-v3">{stat.label}</div>
-                        <div className="kpi-value-v3">{stat.value}</div>
-                        <div className={`kpi-delta-v3 ${stat.trend === 'up' ? 'text-success' : 'text-danger'}`}>
+                    <div key={i} className="card-v3 p-4 hover:bg-background-secondary cursor-pointer transition-all border-v3">
+                        <div className="text-11 font-bold text-tertiary uppercase tracking-wider mb-2">{stat.label}</div>
+                        <div className="text-28 font-extrabold text-primary leading-tight">{stat.value}</div>
+                        <div className={`text-10 font-bold mt-2 ${
+                            stat.trend === 'up' ? 'text-success' : 
+                            stat.trend === 'down' ? 'text-danger' : 'text-tertiary'
+                        }`}>
                             {stat.delta}
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* Main Grid */}
-            <div className="grid2-v3" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px', flex: 1 }}>
-                
-                {/* Flow Chart (Fake bars for high-density look) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Tasks Section */}
                 <div className="section-v3">
-                    <div className="section-header-v3">
-                        <span className="section-title-v3">Fluxo de Caixa</span>
-                        <button className="btn-v3-secondary" style={{ height: '22px', fontSize: '10px' }}>Ver tudo</button>
-                    </div>
-                    <div className="p-4">
-                        <div className="chart-bars-v3" style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '100px', marginBottom: '12px' }}>
-                            {[30, 55, 40, 70, 50, 85, 60, 95, 75, 80, 45, 90].map((h, i) => (
-                                <div key={i} className="flex-1" style={{ 
-                                    height: `${h}%`, 
-                                    background: i % 2 === 0 ? 'var(--color-accent)' : 'var(--color-accent-light)',
-                                    borderRadius: '3px 3px 0 0'
-                                }} />
-                            ))}
+                    <div className="flex-between mb-4 px-1">
+                        <div className="flex items-center gap-2">
+                            <CheckCircle2 size={16} className="text-accent" />
+                            <h2 className="text-13 font-bold text-primary">Tarefas de hoje</h2>
                         </div>
-                        <div className="flex gap-4">
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-sm" style={{ background: 'var(--color-accent)' }} />
-                                <span className="text-9 text-secondary">Receita</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-sm" style={{ background: 'var(--color-accent-light)' }} />
-                                <span className="text-9 text-secondary">Despesa</span>
-                            </div>
-                        </div>
+                        <button className="text-11 font-bold text-accent hover:underline flex items-center gap-1">
+                            Ver todas <ArrowRight size={12} />
+                        </button>
                     </div>
-                </div>
 
-                {/* Pipeline List */}
-                <div className="section-v3">
-                    <div className="section-header-v3">
-                        <span className="section-title-v3">Pipeline CRM</span>
-                        <button className="btn-v3-primary" style={{ height: '22px', fontSize: '10px' }}>+ Novo</button>
-                    </div>
-                    <div className="p-2">
-                        {pipelineLeads.length > 0 ? pipelineLeads.map((lead) => (
-                            <div key={lead.id} className="lead-row-v3 flex items-center gap-3 p-2 border-bottom-v3 last:border-none" style={{ borderBottom: '0.5px solid var(--color-border-tertiary)' }}>
-                                <div className="w-1.5 h-1.5 rounded-full" style={{ background: lead.stage === 'closed_won' ? 'var(--color-success)' : 'var(--color-warning)' }} />
-                                <span className="text-11 font-medium flex-1 truncate">{lead.name}</span>
-                                <span className="text-10 text-secondary">R${lead.value?.toLocaleString() || '0'}</span>
-                                <span className={`tag-v3 ${lead.stage === 'closed_won' ? 'tag-zinc' : 'tag-amber'}`}>
-                                    {lead.stage === 'new' ? 'Qualif.' : lead.stage === 'closed_won' ? 'Ganho' : 'Negoc.'}
+                    <div className="flex flex-col gap-2">
+                        {todayTasks.map((task) => (
+                            <div 
+                                key={task.id} 
+                                className={`flex items-center gap-3 p-3 border-v3 rounded-xl transition-all cursor-pointer ${
+                                    task.completed ? 'bg-background-secondary opacity-60' : 'bg-white hover:border-accent/40'
+                                }`}
+                                onClick={() => toggleTask(task.id)}
+                            >
+                                <div className={`w-5 h-5 rounded-full border-2 flex-center transition-all ${
+                                    task.completed ? 'bg-emerald-500 border-emerald-500' : 'border-slate-200'
+                                }`}>
+                                    {task.completed && <CheckCircle2 size={12} className="text-white" />}
+                                </div>
+                                <span className={`text-12 font-medium flex-1 ${task.completed ? 'line-through text-tertiary' : 'text-primary'}`}>
+                                    {task.title}
                                 </span>
-                            </div>
-                        )) : (
-                            <div className="p-8 text-center text-tertiary text-10">Nenhum lead no funil.</div>
-                        )}
-                    </div>
-                </div>
-
-            </div>
-
-            {/* Bottom Actions Grid */}
-            <div className="dashboard-footer-v3" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                <div className="card-v3">
-                    <div className="flex-between mb-4">
-                        <span className="text-10 font-bold uppercase tracking-wider text-secondary">Próximas Tarefas</span>
-                        <button className="text-10 text-accent font-bold">Agenda completa</button>
-                    </div>
-                    <div className="space-y-2">
-                        {tasks.slice(0, 3).map(task => (
-                            <div key={task.id} className="flex items-center gap-3">
-                                <button 
-                                    className={`check-circle-v3 ${task.done ? 'done' : ''}`}
-                                    onClick={() => toggleTask(task.id)}
-                                />
-                                <span className={`text-11 truncate ${task.done ? 'text-tertiary line-through' : 'text-primary'}`}>{task.text}</span>
+                                <span className={`tag-v3 ${
+                                    task.priority === 'high' ? 'tag-red' : 
+                                    task.priority === 'medium' ? 'tag-amber' : 'tag-zinc'
+                                }`}>
+                                    {task.priority || 'Normal'}
+                                </span>
                             </div>
                         ))}
                     </div>
                 </div>
-                
-                <div className="card-v3" style={{ background: 'var(--color-accent)', color: '#fff' }}>
-                    <div className="flex-between mb-2">
-                        <span className="text-10 font-bold uppercase opacity-80">Insight de IA</span>
-                        <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+
+                {/* Performance / Projects */}
+                <div className="section-v3">
+                    <div className="flex-between mb-4 px-1">
+                        <div className="flex items-center gap-2">
+                            <TrendingUp size={16} className="text-emerald-500" />
+                            <h2 className="text-13 font-bold text-primary">Projetos Ativos</h2>
+                        </div>
+                        <button className="btn-icon-v3"><Plus size={14} /></button>
                     </div>
-                    <p className="text-11 leading-relaxed mb-4 opacity-90">
-                        Você tem 3 propostas vencendo hoje. Sugerimos enviar um follow-up automático para acelerar o fechamento.
-                    </p>
-                    <button className="w-full h-8 rounded-md bg-white text-accent text-10 font-bold hover:bg-opacity-90 transition-all">
-                        Executar automação
-                    </button>
+
+                    <div className="grid grid-cols-1 gap-3">
+                        <div className="card-v3 p-4 border-v3 hover:bg-background-secondary transition-all">
+                            <div className="flex-between mb-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-600 flex-center text-white font-bold">A</div>
+                                    <div>
+                                        <div className="text-12 font-bold text-primary">Atende Já - V3</div>
+                                        <div className="text-10 text-tertiary font-medium">Desenvolvimento de UI/UX</div>
+                                    </div>
+                                </div>
+                                <button className="btn-icon-v3"><MoreHorizontal size={14} /></button>
+                            </div>
+                            <div className="w-full h-1.5 bg-background-tertiary rounded-full overflow-hidden mb-2">
+                                <div className="h-full bg-accent" style={{ width: '85%' }} />
+                            </div>
+                            <div className="flex-between text-10 font-bold text-tertiary">
+                                <span>85% concluído</span>
+                                <span>24 tarefas pendentes</span>
+                            </div>
+                        </div>
+
+                        <div className="card-v3 p-4 border-v3 hover:bg-background-secondary transition-all">
+                            <div className="flex-between mb-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-emerald-600 flex-center text-white font-bold">M</div>
+                                    <div>
+                                        <div className="text-12 font-bold text-primary">Marketing Hub</div>
+                                        <div className="text-10 text-tertiary font-medium">Campanha Meta Ads Q2</div>
+                                    </div>
+                                </div>
+                                <button className="btn-icon-v3"><MoreHorizontal size={14} /></button>
+                            </div>
+                            <div className="w-full h-1.5 bg-background-tertiary rounded-full overflow-hidden mb-2">
+                                <div className="h-full bg-emerald-500" style={{ width: '40%' }} />
+                            </div>
+                            <div className="flex-between text-10 font-bold text-tertiary">
+                                <span>40% concluído</span>
+                                <span>12 tarefas pendentes</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-
         </div>
     );
 }

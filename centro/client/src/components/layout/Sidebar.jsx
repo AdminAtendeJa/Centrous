@@ -7,18 +7,18 @@ import {
 import { useAuthStore } from '../../store/index.js';
 
 const NAV_ITEMS = [
-    { to: '/dashboard', icon: LayoutDashboard, label: 'Painel Geral' },
-    { to: '/crm', icon: Users, label: 'CRM & Leads' },
-    { to: '/finance', icon: DollarSign, label: 'Financeiro' },
-    { to: '/productivity', icon: CheckSquare, label: 'Tarefas & Foco' },
+    { to: '/dashboard', icon: LayoutDashboard, label: 'Painel' },
+    { to: '/crm', icon: Users, label: 'CRM' },
+    { to: '/finance', icon: DollarSign, label: 'Finanças' },
+    { to: '/productivity', icon: CheckSquare, label: 'Foco' },
     { type: 'divider' },
-    { to: '/inbox', icon: MessageCircle, label: 'Mensagens', badge: true },
-    { to: '/notion', icon: Folder, label: 'Notion Hub' },
-    { to: '/social', icon: Share2, label: 'Social & Ads' },
+    { to: '/inbox', icon: MessageCircle, label: 'Inbox', badge: true },
+    { to: '/notion', icon: Folder, label: 'Notion' },
+    { to: '/social', icon: Share2, label: 'Social' },
     { to: '/proposals', icon: Briefcase, label: 'Propostas' },
     { type: 'divider' },
-    { to: '/n8n', icon: Zap, label: 'n8n Monitor' },
-    { to: '/supabase-monitor', icon: Database, label: 'Supabase' },
+    { to: '/n8n', icon: Zap, label: 'Automacão' },
+    { to: '/supabase-monitor', icon: Database, label: 'Dados' },
     { to: '/integrations', icon: Plug, label: 'Conexões' },
 ];
 
@@ -28,9 +28,7 @@ export default function Sidebar() {
 
     return (
         <aside className="sidebar-v3">
-            <div className="logo-v3">
-                <div className="logo-inner-v3">C</div>
-            </div>
+            <div className="logo-v3">Ct</div>
 
             <nav className="nav-v3">
                 {NAV_ITEMS.map((item, idx) => (
