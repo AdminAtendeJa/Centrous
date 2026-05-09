@@ -17,10 +17,16 @@ const createSafeClient = (url, key, name) => {
                 signUp: () => Promise.reject(new Error(`Configuración de Supabase (${name}) incompleta.`)),
                 signOut: () => Promise.resolve(),
                 getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+                getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+                onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
             },
             from: () => ({
                 select: () => Promise.reject(new Error(`Configuración de Supabase (${name}) incompleta.`)),
                 insert: () => Promise.reject(new Error(`Configuración de Supabase (${name}) incompleta.`)),
+                update: () => Promise.reject(new Error(`Configuración de Supabase (${name}) incompleta.`)),
+                delete: () => Promise.reject(new Error(`Configuración de Supabase (${name}) incompleta.`)),
+                eq: () => ({ select: () => Promise.reject(new Error(`Configuración de Supabase (${name}) incompleta.`)) }),
+                order: () => ({ select: () => Promise.reject(new Error(`Configuración de Supabase (${name}) incompleta.`)) }),
             })
         };
     }
