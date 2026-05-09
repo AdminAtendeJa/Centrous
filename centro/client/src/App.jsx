@@ -30,6 +30,7 @@ const Onboarding = lazy(() => import('./pages/Onboarding/Onboarding.jsx'));
 const Inbox = lazy(() => import('./pages/Inbox/Inbox.jsx'));
 const Auth = lazy(() => import('./pages/Auth/Auth.jsx'));
 const MetaAds = lazy(() => import('./pages/Marketing/MetaAds.jsx'));
+const IntegrationsPage = lazy(() => import('./modules/integrations/IntegrationsPage'));
 
 function LocationTracker() {
     const location = useLocation();
@@ -143,11 +144,9 @@ function AnimatedRoutes() {
                                         <Route path="/proposals" element={<PageWrapper><Proposals /></PageWrapper>} />
                                         <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
                                         <Route path="/supabase-monitor" element={<PageWrapper><SupabaseMonitor /></PageWrapper>} />
-                                        <Route path="/integrations" element={<PageWrapper><Integrations /></PageWrapper>} />
                                         <Route path="/notion" element={<PageWrapper><NotionHub /></PageWrapper>} />
                                         <Route path="/n8n" element={<PageWrapper><N8nMonitor /></PageWrapper>} />
                                         <Route path="/integrations" element={<PageWrapper><IntegrationsPage /></PageWrapper>} />
-                                        <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
                                         <Route path="/social" element={<PageWrapper><SocialMedia /></PageWrapper>} />
                                         <Route path="/productivity" element={<PageWrapper><Productivity /></PageWrapper>} />
                                         <Route path="/finance" element={<PageWrapper><Finance /></PageWrapper>} />

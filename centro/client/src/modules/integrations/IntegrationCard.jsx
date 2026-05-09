@@ -1,11 +1,33 @@
-import * as Icons from 'lucide-react';
+import { 
+  MessageSquare, 
+  Mail, 
+  Calendar, 
+  CreditCard, 
+  Zap, 
+  Plug, 
+  Trash2,
+  DollarSign,
+  Workflow,
+  Share2
+} from 'lucide-react';
 import { useIntegrationsStore } from './useIntegrationsStore';
 import { formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+const ICON_MAP = {
+  MessageSquare,
+  Mail,
+  Calendar,
+  CreditCard,
+  Zap,
+  DollarSign,
+  Workflow,
+  Share2
+};
+
 export default function IntegrationCard({ integration, credential, onConnect }) {
   const { toggleActive, disconnect } = useIntegrationsStore();
-  const Icon = Icons[integration.icon] || Icons.Plug;
+  const Icon = ICON_MAP[integration.icon] || Plug;
   const isConnected = !!credential;
   const isActive = credential?.is_active;
 
@@ -61,7 +83,7 @@ export default function IntegrationCard({ integration, credential, onConnect }) 
                   if(window.confirm('Desconectar esta integração?')) disconnect(credential.id);
               }}
             >
-              <Icons.Trash2 size={14} />
+              <Trash2 size={14} />
             </button>
           </>
         )}
