@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { 
     MessageSquare, Calendar, Zap, MoreHorizontal, 
-    Clock, CheckCircle, Plus, ExternalLink,
-    FilePlus, FileEdit, Receipt, Calendar, FileText, Columns
+    Clock, CheckCircle2, Plus, ArrowUpRight,
+    FilePlus, StickyNote, Receipt, CalendarPlus, FileSignature, Kanban
 } from 'lucide-react';
 import { useCRMStore, useTasksStore } from '../../store/index.js';
 
@@ -21,11 +21,11 @@ export default function UtilityPanel() {
 
     const quickActions = [
         { icon: FilePlus, title: 'Novo documento', sub: 'Crie e compartilhe' },
-        { icon: FileEdit, title: 'Nova nota', sub: 'Rápida e privada' },
+        { icon: StickyNote, title: 'Nova nota', sub: 'Rápida e privada' },
         { icon: Receipt, title: 'Cobrança', sub: 'Emitir fatura' },
-        { icon: Calendar, title: 'Agendar reunião', sub: 'Sync automático' },
-        { icon: FileText, title: 'Novo contrato', sub: 'Com assinatura' },
-        { icon: Columns, title: 'Novo projeto', sub: 'Kanban ou lista' },
+        { icon: CalendarPlus, title: 'Agendar reunião', sub: 'Sync automático' },
+        { icon: FileSignature, title: 'Novo contrato', sub: 'Com assinatura' },
+        { icon: Kanban, title: 'Novo projeto', sub: 'Kanban ou lista' },
     ];
 
     return (
@@ -71,7 +71,7 @@ export default function UtilityPanel() {
                             </div>
                         ))}
                         <button className="btn-v3-ghost w-full mt-2 text-10 border-v3" style={{ height: '28px' }}>
-                            Ver todas as mensagens <ExternalLink size={10} className="ml-1" />
+                            Ver todas as mensagens <ArrowUpRight size={10} className="ml-1" />
                         </button>
                     </div>
                 )}
@@ -89,7 +89,7 @@ export default function UtilityPanel() {
                             </div>
                         ))}
                         <button className="btn-v3-ghost w-full mt-4 text-10 border-v3" style={{ height: '28px' }}>
-                            Ver agenda completa <ExternalLink size={10} className="ml-1" />
+                            Ver agenda completa <ArrowUpRight size={10} className="ml-1" />
                         </button>
                     </div>
                 )}
