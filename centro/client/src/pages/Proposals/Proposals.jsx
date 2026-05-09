@@ -1,139 +1,92 @@
 import { useState } from 'react';
-import { Plus, Trash2, X, Check, TrendingUp, Clock, CheckCircle, XCircle } from 'lucide-react';
-import { useProposalsStore } from '../../store/index.js';
+import { Plus, Search, FileText, Download, MoreHorizontal, Clock } from 'lucide-react';
 
-const STATUS_OPTIONS = ['pending', 'won', 'lost'];
-const STATUS_MAP = {
-    pending: { label: 'Pendiente', cls: 'badge-warning' },
-    won: { label: '🏆 Ganada', cls: 'badge-success' },
-    lost: { label: 'Perdida', cls: 'badge-danger' },
-};
+export default function Proposals() {
+    const [searchTerm, setSearchTerm] = useState('');
 
-function ProposalModal({ onClose, onSave }) {
-    const [form, setForm] = useState({ client: '', company: '', amount: '', description: '', followUpAt: '' });
-    const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+    // Demo data for now, but following V3 high-density table pattern
+    const proposals = [
+        { id: '1', client: 'Acme Corp', title: 'Implementação CRM', value: 12500, date: '10 Mai, 2026', status: 'Draft' },
+        { id: '2', client: 'TechFlow', title: 'Consultoria n8n', value: 3200, date: '08 Mai, 2026', status: 'Sent' },
+        { id: '3', client: 'Global Logistics', title: 'Automação WhatsApp', value: 8900, date: '05 Mai, 2026', status: 'Accepted' },
+    ];
+
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h2>Nueva Propuesta</h2>
-                    <button className="btn-icon" onClick={onClose}><X size={16} /></button>
+        <div className="proposals-v3 animate-in">
+            {/* Stats */}
+            <div className="stat-grid-v3 mb-6">
+                <div className="stat-card-v3">
+                    <div className="stat-label-v3">Total em Propostas</div>
+                    <div className="stat-value-v3">$24,600</div>
+                    <div className="stat-delta-v3 up">↑ 12% vs mês anterior</div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <div className="grid-2">
-                        <div><label>Cliente *</label><input value={form.client} onChange={(e) => set('client', e.target.value)} placeholder="Nombre" /></div>
-                        <div><label>Empresa</label><input value={form.company} onChange={(e) => set('company', e.target.value)} placeholder="Empresa SA" /></div>
-                    </div>
-                    <div><label>Descripción del servicio</label><input value={form.description} onChange={(e) => set('description', e.target.value)} placeholder="Bot WhatsApp + integración CRM…" /></div>
-                    <div className="grid-2">
-                        <div><label>Monto ($)</label><input type="number" value={form.amount} onChange={(e) => set('amount', e.target.value)} placeholder="1500" /></div>
-                        <div><label>Follow-up el</label><input type="date" value={form.followUpAt} onChange={(e) => set('followUpAt', e.target.value)} /></div>
-                    </div>
+                <div className="stat-card-v3">
+                    <div className="stat-label-v3">Taxa de Aceite</div>
+                    <div className="stat-value-v3">68%</div>
+                    <div className="stat-delta-v3 neutral">Estável</div>
                 </div>
-                <div className="flex gap-2" style={{ marginTop: 16, justifyContent: 'flex-end' }}>
-                    <button className="btn btn-ghost" onClick={onClose}>Cancelar</button>
-                    <button className="btn btn-primary" onClick={() => form.client && onSave({ ...form, amount: Number(form.amount) || 0, status: 'pending' })}>
-                        <Check size={14} /> Guardar
+                <div className="stat-card-v3">
+                    <div className="stat-label-v3">Propostas Ativas</div>
+                    <div className="stat-value-v3">12</div>
+                    <div className="stat-delta-v3 up">↑ 3 novas</div>
+                </div>
+            </div>
+
+            {/* Toolbar */}
+            <div className="toolbar-v3 mb-4">
+                <div className="search-box-v3">
+                    <Search size={14} />
+                    <input 
+                        type="text" 
+                        placeholder="Pesquisar propostas..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="toolbar-actions-v3">
+                    <button className="btn-v3-primary">
+                        <Plus size={14} /> Criar Proposta
                     </button>
                 </div>
             </div>
-        </div>
-    );
-}
 
-export default function Proposals() {
-    const { proposals, addProposal, updateProposal, deleteProposal } = useProposalsStore();
-    const [showModal, setShowModal] = useState(false);
-    const [filter, setFilter] = useState('all');
-
-    const filtered = filter === 'all' ? proposals : proposals.filter((p) => p.status === filter);
-    const wonTotal = proposals.filter((p) => p.status === 'won').reduce((s, p) => s + p.amount, 0);
-    const pendingTotal = proposals.filter((p) => p.status === 'pending').reduce((s, p) => s + p.amount, 0);
-    const winRate = proposals.length ? Math.round((proposals.filter((p) => p.status === 'won').length / proposals.length) * 100) : 0;
-
-    const isOverdue = (followUpAt) => followUpAt && new Date(followUpAt) < new Date();
-
-    return (
-        <div className="animate-in">
-            {showModal && <ProposalModal onClose={() => setShowModal(false)} onSave={(d) => { addProposal(d); setShowModal(false); }} />}
-
-            <div className="page-header">
-                <h1>Propuestas 💼</h1>
-                <p>Rastrea el estado de tus cotizaciones y cierres.</p>
-            </div>
-
-            {/* KPIs */}
-            <div className="grid-4" style={{ marginBottom: 24 }}>
-                {[
-                    { label: 'Revenue Ganado', value: `$${wonTotal.toLocaleString()}`, icon: TrendingUp, color: 'var(--color-success)' },
-                    { label: 'Pipeline Pendiente', value: `$${pendingTotal.toLocaleString()}`, icon: Clock, color: 'var(--color-warning)' },
-                    { label: 'Tasa de Cierre', value: `${winRate}%`, icon: CheckCircle, color: 'var(--color-primary-light)' },
-                    { label: 'Total Propuestas', value: proposals.length, icon: XCircle, color: 'var(--text-secondary)' },
-                ].map(({ label, value, icon: Icon, color }) => (
-                    <div key={label} className="card flex-center gap-3">
-                        <Icon size={22} color={color} style={{ flexShrink: 0 }} />
-                        <div>
-                            <div style={{ fontSize: 22, fontWeight: 800 }}>{value}</div>
-                            <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{label}</div>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            <div className="flex-between mb-4">
-                <div className="flex gap-2">
-                    {['all', 'pending', 'won', 'lost'].map((f) => (
-                        <button key={f} onClick={() => setFilter(f)} className={`btn btn-sm ${filter === f ? 'btn-primary' : 'btn-ghost'}`}>
-                            {f === 'all' ? 'Todas' : STATUS_MAP[f].label}
-                        </button>
-                    ))}
-                </div>
-                <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-                    <Plus size={14} /> Nueva Propuesta
-                </button>
-            </div>
-
+            {/* Table */}
             <div className="table-wrapper">
-                <table>
+                <table className="table-v3">
                     <thead>
                         <tr>
+                            <th>Proposta</th>
                             <th>Cliente</th>
-                            <th>Descripción</th>
-                            <th>Monto</th>
-                            <th>Enviada</th>
-                            <th>Follow-up</th>
-                            <th>Estado</th>
-                            <th>Acción</th>
+                            <th>Valor</th>
+                            <th>Data</th>
+                            <th>Status</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filtered.map((p) => (
+                        {proposals.map((p) => (
                             <tr key={p.id}>
                                 <td>
-                                    <div style={{ fontWeight: 600 }}>{p.client}</div>
-                                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{p.company}</div>
+                                    <div className="lead-cell-v3">
+                                        <div className="lead-ava-v3" style={{background: 'rgba(99, 102, 241, 0.1)', color: 'var(--color-primary)'}}>
+                                            <FileText size={12} />
+                                        </div>
+                                        <span className="font-medium">{p.title}</span>
+                                    </div>
                                 </td>
-                                <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.description}</td>
-                                <td style={{ fontWeight: 700, color: 'var(--color-success)' }}>${p.amount?.toLocaleString()}</td>
-                                <td style={{ fontSize: 12, color: 'var(--text-muted)' }}>{new Date(p.sentAt).toLocaleDateString('es')}</td>
+                                <td>{p.client}</td>
+                                <td className="font-medium">${p.value.toLocaleString()}</td>
+                                <td>{p.date}</td>
                                 <td>
-                                    {p.followUpAt ? (
-                                        <span style={{ fontSize: 12, color: isOverdue(p.followUpAt) ? 'var(--color-danger)' : 'var(--text-secondary)' }}>
-                                            {isOverdue(p.followUpAt) ? '⚠️ ' : ''}{new Date(p.followUpAt).toLocaleDateString('es')}
-                                        </span>
-                                    ) : '—'}
-                                </td>
-                                <td>
-                                    <select
-                                        value={p.status}
-                                        onChange={(e) => updateProposal(p.id, { status: e.target.value })}
-                                        style={{ width: 'auto', padding: '4px 8px', fontSize: 12 }}
-                                    >
-                                        {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{STATUS_MAP[s].label}</option>)}
-                                    </select>
+                                    <span className={`tag-v3 ${p.status === 'Accepted' ? 'tag-green' : p.status === 'Sent' ? 'tag-blue' : 'tag-zinc'}`}>
+                                        {p.status}
+                                    </span>
                                 </td>
                                 <td>
-                                    <button className="btn-icon" onClick={() => deleteProposal(p.id)}><Trash2 size={13} /></button>
+                                    <div className="flex gap-2">
+                                        <button className="btn-icon-v3"><Download size={14} /></button>
+                                        <button className="btn-icon-v3"><MoreHorizontal size={14} /></button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

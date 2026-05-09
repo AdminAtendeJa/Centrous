@@ -1,10 +1,14 @@
+import { useSettingsStore } from '../../store/index.js';
+
 export default function IntegrationsBar() {
+    const { settings } = useSettingsStore();
+
     const integrations = [
-        { name: 'Google', active: true },
-        { name: 'Slack', active: true },
-        { name: 'WhatsApp', active: true },
-        { name: 'Notion', active: false },
-        { name: 'Trello', active: false },
+        { name: 'Google', active: !!settings.googleClientId },
+        { name: 'n8n', active: !!settings.n8nApiKey },
+        { name: 'WhatsApp', active: !!settings.whatsappKey }, // Assuming there's a key
+        { name: 'Notion', active: !!settings.notionKey },
+        { name: 'Meta', active: !!settings.metaToken },
     ];
 
     return (
@@ -15,6 +19,7 @@ export default function IntegrationsBar() {
                     <div 
                         key={int.name} 
                         className={`int-chip-v3 ${int.active ? 'active' : ''}`}
+                        title={int.active ? 'Conectado' : 'Não configurado'}
                     >
                         {int.name}
                     </div>

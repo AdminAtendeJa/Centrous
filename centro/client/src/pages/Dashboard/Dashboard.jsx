@@ -1,19 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
-    TrendingUp, Users, ArrowRight, Plus, 
-    CheckCircle2, Clock, PlayCircle, AlertCircle 
+    Users, ArrowRight, Plus, 
 } from 'lucide-react';
 import { useTasksStore, useCRMStore } from '../../store/index.js';
-import toast from 'react-hot-toast';
 
 export default function Dashboard() {
     const { tasks, toggleTask } = useTasksStore();
     const { leads } = useCRMStore();
     
     const stats = [
-        { label: 'Tarefas concluídas', value: tasks.filter(t => t.done).length, delta: '↑ 3 a mais', trend: 'up' },
-        { label: 'Reuniões', value: 4, delta: '↓ 1 a menos', trend: 'down' },
-        { label: 'Projetos ativos', value: 3, delta: 'sem alteração', trend: 'neutral' },
+        { label: 'Leads Ativos', value: leads.length, delta: 'Total no funil', trend: 'neutral' },
+        { label: 'Tarefas Pendentes', value: tasks.filter(t => !t.done).length, delta: 'Agendadas para hoje', trend: 'neutral' },
+        { label: 'Cierres do Mês', value: leads.filter(l => l.stage === 'closed_won').length, delta: 'Conversões reais', trend: 'up' },
     ];
 
     const todayTasks = tasks.slice(0, 5);
@@ -25,20 +23,19 @@ export default function Dashboard() {
     };
 
     const getStatusLabel = (done, priority) => {
-        if (done) return 'Pronto';
-        if (priority === 'high') return 'Atrasado';
-        if (priority === 'medium') return 'Urgente';
-        return 'Em progresso';
+        if (done) return 'Concluído';
+        if (priority === 'high') return 'Urgente';
+        return 'Em foco';
     };
 
     return (
         <div className="dashboard-v3 animate-in">
             {/* Stats Grid */}
-            <div className="section-v3">
+            <div className="section-v3 mb-6">
                 <div className="section-header-v3">
-                    <span className="section-title-v3">Esta semana</span>
-                    <button className="section-action-v3">
-                        Ver tudo <ArrowRight size={11} />
+                    <span className="section-title-v3">Resumo Executivo</span>
+                    <button className="btn-v3-secondary">
+                        Ver Relatório <ArrowRight size={11} />
                     </button>
                 </div>
                 <div className="stat-grid-v3">
@@ -47,7 +44,7 @@ export default function Dashboard() {
                             <div className="stat-label-v3">{stat.label}</div>
                             <div className="stat-value-v3">{stat.value}</div>
                             <div className={`stat-delta-v3 ${stat.trend}`}>
-                                {stat.trend === 'up' ? '↑' : stat.trend === 'down' ? '↓' : ''} {stat.delta}
+                                {stat.delta}
                             </div>
                         </div>
                     ))}
@@ -57,21 +54,21 @@ export default function Dashboard() {
             {/* Main Content Grid */}
             <div className="dashboard-main-v3">
                 {/* Tasks Section */}
-                <div className="section-v3 tasks-area-v3">
+                <div className="section-v3">
                     <div className="section-header-v3">
-                        <span className="section-title-v3">Tarefas de hoje</span>
-                        <button className="section-action-v3">
+                        <span className="section-title-v3">Próximas Ações</span>
+                        <button className="btn-v3-primary">
                             <Plus size={11} /> Nova tarefa
                         </button>
                     </div>
                     <div className="task-list-v3">
                         {todayTasks.length > 0 ? todayTasks.map((task) => (
-                            <div key={task.id} className="task-item-v3">
+                            <div key={task.id} className="task-item-v3 card-v3 mb-2" style={{display: 'flex', alignItems: 'center', gap: 12}}>
                                 <button 
                                     className={`check-circle-v3 ${task.done ? 'done' : ''}`}
                                     onClick={() => toggleTask(task.id)}
                                 />
-                                <span className={`task-text-v3 ${task.done ? 'done' : ''}`}>
+                                <span className={`task-text-v3 ${task.done ? 'done' : ''}`} style={{flex: 1, fontSize: 13}}>
                                     {task.text}
                                 </span>
                                 <span className={`tag-v3 ${getTagClass(task.priority)}`}>
@@ -79,34 +76,24 @@ export default function Dashboard() {
                                 </span>
                             </div>
                         )) : (
-                            <div className="empty-state-v3">Nenhuma tarefa para hoje</div>
+                            <div className="empty-state-v3 card-v3 py-8 text-center text-tertiary">
+                                Nenhuma tarefa pendente
+                            </div>
                         )}
                     </div>
                 </div>
 
-                {/* Mini Calendar Section */}
-                <div className="section-v3 calendar-area-v3">
-                    <div className="mini-cal-v3">
-                        <div className="cal-header-v3">
-                            <span className="cal-month-v3">Maio 2026</span>
-                            <div className="cal-nav-v3">
-                                <span>‹</span>
-                                <span>›</span>
+                {/* Info Card Section */}
+                <div className="section-v3">
+                    <div className="card-v3" style={{background: 'var(--color-background-secondary)'}}>
+                        <span className="section-title-v3 mb-4 block" style={{fontSize: 11}}>Saúde do Pipeline</span>
+                        <div className="pipeline-health-v3">
+                            <div style={{height: 4, background: 'var(--color-border-tertiary)', borderRadius: 2, overflow: 'hidden', marginBottom: 12}}>
+                                <div style={{width: '65%', height: '100%', background: 'var(--color-accent)'}} />
                             </div>
-                        </div>
-                        <div className="cal-grid-v3">
-                            {['D','S','T','Q','Q','S','S'].map(d => (
-                                <div key={d} className="cal-day-v3 head">{d}</div>
-                            ))}
-                            {/* Simple mock calendar days */}
-                            {Array.from({length: 31}, (_, i) => i + 1).map(day => (
-                                <div 
-                                    key={day} 
-                                    className={`cal-day-v3 ${day === 9 ? 'today' : ''} ${[1, 5, 8, 12, 17, 24].includes(day) ? 'event' : ''}`}
-                                >
-                                    {day}
-                                </div>
-                            ))}
+                            <p style={{fontSize: 11, color: 'var(--color-text-secondary)', lineHeight: 1.5}}>
+                                Você tem {leads.filter(l => l.stage === 'new').length} novos leads aguardando primeiro contato.
+                            </p>
                         </div>
                     </div>
                 </div>

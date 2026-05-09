@@ -12,17 +12,15 @@ export default function UtilityPanel() {
         .map(l => ({
             name: l.name,
             preview: l.messages[l.messages.length - 1].text,
-            time: '10:32', // Mock time
-            color: '#534AB7'
+            time: 'Agora', 
+            color: '#1a1a2e'
         })).slice(0, 4);
 
     const quickActions = [
-        { icon: FilePlus, label: 'Novo documento', sub: 'Crie e compartilhe' },
-        { icon: FileText, label: 'Nova nota', sub: 'Rápida e privada' },
-        { icon: Receipt, label: 'Cobrança', sub: 'Emitir fatura' },
-        { icon: Calendar, label: 'Agendar reunião', sub: 'Sync automático' },
-        { icon: FileCheck, label: 'Novo contrato', sub: 'Com assinatura' },
-        { icon: LayoutGrid, label: 'Novo projeto', sub: 'Kanban ou lista' },
+        { icon: FilePlus, label: 'Proposta', sub: 'Criar nova' },
+        { icon: FileText, label: 'Nota', sub: 'Rápida' },
+        { icon: Receipt, label: 'Fatura', sub: 'Emitir' },
+        { icon: Calendar, label: 'Reunião', sub: 'Agendar' },
     ];
 
     return (
@@ -44,7 +42,7 @@ export default function UtilityPanel() {
                     className={`panel-tab-v3 ${activeTab === 'actions' ? 'active' : ''}`}
                     onClick={() => setActiveTab('actions')}
                 >
-                    Ações rápidas
+                    Atalhos
                 </button>
             </div>
 
@@ -63,34 +61,22 @@ export default function UtilityPanel() {
                                     </div>
                                     <div className="msg-preview-v3">{msg.preview}</div>
                                 </div>
-                                <div className="msg-unread-v3" />
                             </div>
                         )) : (
-                            <div className="empty-state-v3">Sem mensagens recentes</div>
+                            <div className="empty-state-v3 py-8 text-center text-tertiary">
+                                Sem mensagens recentes
+                            </div>
                         )}
-                        <button className="panel-btn-v3">Ver todas as mensagens ↗</button>
+                        <button className="panel-btn-v3">Ver todas</button>
                     </div>
                 )}
 
                 {activeTab === 'agenda' && (
                     <div className="tab-content-v3">
-                        <div className="agenda-item-v3">
-                            <div className="agenda-time-v3">9:00</div>
-                            <div className="agenda-dot-v3" style={{ background: '#534AB7' }} />
-                            <div className="agenda-info-v3">
-                                <div className="agenda-title-v3">Stand-up do time</div>
-                                <div className="agenda-sub-v3">Google Meet · 30 min</div>
-                            </div>
+                        <div className="empty-state-v3 py-8 text-center text-tertiary">
+                            Nenhum compromisso agendado
                         </div>
-                        <div className="agenda-item-v3">
-                            <div className="agenda-time-v3">11:00</div>
-                            <div className="agenda-dot-v3" style={{ background: '#E24B4A' }} />
-                            <div className="agenda-info-v3">
-                                <div className="agenda-title-v3">Cliente: Acme Corp</div>
-                                <div className="agenda-sub-v3">Zoom · 1h</div>
-                            </div>
-                        </div>
-                        <button className="panel-btn-v3">Ver agenda completa ↗</button>
+                        <button className="panel-btn-v3">Sincronizar Google Calendar</button>
                     </div>
                 )}
 
@@ -98,7 +84,7 @@ export default function UtilityPanel() {
                     <div className="quick-grid-v3">
                         {quickActions.map((action, i) => (
                             <button key={i} className="quick-btn-v3">
-                                <action.icon size={18} className="quick-icon-v3" />
+                                <action.icon size={16} className="quick-icon-v3" />
                                 <span className="quick-label-v3">{action.label}</span>
                                 <p className="quick-sub-v3">{action.sub}</p>
                             </button>
