@@ -14,26 +14,20 @@ export default function IntegrationsBar() {
 
     return (
         <footer className="integrations-bar-v3">
-            <span className="text-10 font-bold text-tertiary uppercase tracking-widest mr-2">Status</span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2 w-full justify-center">
                 {integrations.map(int => (
                     <div 
                         key={int.name} 
                         className={`btn-v3-pill ${int.active ? 'active' : ''}`}
                         title={int.active ? 'Conexão estável' : 'Aguardando configuração'}
+                        style={{ border: 'none', background: int.active ? 'var(--color-accent-light)' : 'transparent' }}
                     >
-                        <div className={`w-1 h-1 rounded-full mr-1.5 ${int.active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
-                        {int.name}
+                        <div className={`w-1 h-1 rounded-full mr-2 ${int.active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                        <span className={`text-9 font-bold ${int.active ? 'text-accent' : 'text-tertiary'}`}>
+                            {int.name}
+                        </span>
                     </div>
                 ))}
-            </div>
-            <div className="ml-auto flex items-center gap-4">
-                <div className="flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-9 font-bold text-secondary">SISTEMA ONLINE</span>
-                </div>
-                <div className="h-3 w-px bg-border-tertiary" />
-                <span className="text-9 text-tertiary font-medium">v3.2.1</span>
             </div>
         </footer>
     );
