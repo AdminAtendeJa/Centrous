@@ -1,6 +1,13 @@
 # Etapa 1: Construir el Frontend (React/Vite)
 FROM node:20-alpine AS frontend-builder
 WORKDIR /app/client
+
+# Variables de construcción para Vite (Se inyectan en el bundle)
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+
 # Copiar dependencias y código del cliente
 COPY client/package*.json ./
 RUN npm install

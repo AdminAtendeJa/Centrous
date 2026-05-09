@@ -1,40 +1,56 @@
 import { createClient } from '@supabase/supabase-js';
 
-// 1. CLIENTE DE AUTENTICACIÓN (Fijo para el login de la app)
-// Este proyecto guarda las cuentas de los usuarios de Centrous
-const masterUrl = import.meta.env.VITE_SUPABASE_URL || 'https://trwxqvvztboqephqcsdi.supabase.co';
-const masterKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyd3hxdnZ6dGJvcWVwaHFjc2RpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3MjAwNzgsImV4cCI6MjA5MTI5NjA3OH0.TEMP_KEY_PROVIDE_REAL_ONE'; 
+// --- CONFIGURACIÓN MAESTRA (AUTENTICACIÓN) ---
+const masterUrl = import.meta.env.VITE_SUPABASE_URL;
+const masterKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!import.meta.env.VITE_SUPABASE_ANON_KEY) {
-    console.warn('⚠️ Centrous: VITE_SUPABASE_ANON_KEY no detectada. Usando llave temporal para evitar crash.');
-}
+/**
+ * Inicialización segura del cliente de Supabase para evitar crashes en el build
+ */
+const createSafeClient = (url, key, name) => {
+    if (!url || !key) {
+        console.error(`❌ [Centrous] Falta configuración para el cliente de Supabase: ${name}`);
+        // Retornamos un objeto que no rompa la app al importar, pero que falle al usarlo
+        return {
+            auth: {
+                signInWithPassword: () => Promise.reject(new Error(`Configuración de Supabase (${name}) incompleta.`)),
+                signUp: () => Promise.reject(new Error(`Configuración de Supabase (${name}) incompleta.`)),
+                signOut: () => Promise.resolve(),
+                getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+            },
+            from: () => ({
+                select: () => Promise.reject(new Error(`Configuración de Supabase (${name}) incompleta.`)),
+                insert: () => Promise.reject(new Error(`Configuración de Supabase (${name}) incompleta.`)),
+            })
+        };
+    }
+    return createClient(url, key);
+};
 
-export const supabase = createClient(masterUrl, masterKey);
+// Cliente para Auth (Predefinido)
+export const supabase = createSafeClient(masterUrl, masterKey, 'Master/Auth');
 
-// 2. CLIENTE DE DATOS (Dinámico - Configurable por el usuario)
-// Este es el que el usuario configura en Ajustes para ver sus propias tablas
+// --- CONFIGURACIÓN DINÁMICA (DATOS) ---
 const savedDataUrl = localStorage.getItem('active_sb_url');
 const savedDataKey = localStorage.getItem('active_sb_key');
 
-export let dataSupabase = createClient(
+// El cliente de datos usa el guardado o cae al maestro
+export let dataSupabase = createSafeClient(
     savedDataUrl || masterUrl, 
-    savedDataKey || masterKey
+    savedDataKey || masterKey,
+    'Data/Dynamic'
 );
 
 /**
- * Función para actualizar la base de datos de trabajo sin cerrar sesión
+ * Actualiza el proyecto de datos sin afectar la sesión de Auth
  */
 export const updateDataProject = (url, key) => {
     if (!url || !key) {
         localStorage.removeItem('active_sb_url');
         localStorage.removeItem('active_sb_key');
-        dataSupabase = createClient(masterUrl, masterKey);
     } else {
-        localStorage.setItem('active_sb_url', url);
-        localStorage.setItem('active_sb_key', key);
-        dataSupabase = createClient(url, key);
+        localStorage.setItem('active_sb_url', url.trim());
+        localStorage.setItem('active_sb_key', key.trim());
     }
-    // No necesitamos recargar toda la app, solo notificar a los stores
-    // Pero por simplicidad en esta fase, un reload asegura que todo se refresque
     window.location.reload();
 };
