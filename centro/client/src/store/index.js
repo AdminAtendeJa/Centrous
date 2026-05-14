@@ -298,3 +298,39 @@ export const useAIStore = create((set) => ({
     latestScanResult: null,
     setLatestScanResult: (result) => set({ latestScanResult: result }),
 }));
+
+// ── Finance Store ────────────────────────────────────────────────────────────
+const INITIAL_TRANSACTIONS = [
+    { id: '1', name: 'Assinatura n8n', date: '2026-05-05', amount: 35, type: 'expense', status: 'paid', category: 'Software' },
+    { id: '2', name: 'Meta Ads - Campanha A', date: '2026-05-04', amount: 300, type: 'expense', status: 'pending', category: 'Marketing' },
+    { id: '3', name: 'Railway Hosting', date: '2026-05-02', amount: 15, type: 'expense', status: 'paid', category: 'Infraestrutura' },
+    { id: '4', name: 'Venda: Acme Corp', date: '2026-05-01', amount: 2500, type: 'income', status: 'received', category: 'Vendas' },
+];
+
+export const useFinanceStore = create(
+    persist(
+        (set, get) => ({
+            transactions: INITIAL_TRANSACTIONS,
+            addTransaction: (t) =>
+                set((s) => ({
+                    transactions: [
+                        { ...t, id: Date.now().toString(), date: t.date || new Date().toISOString().split('T')[0] },
+                        ...s.transactions,
+                    ],
+                })),
+            updateTransaction: (id, data) =>
+                set((s) => ({
+                    transactions: s.transactions.map((t) => (t.id === id ? { ...t, ...data } : t)),
+                })),
+            deleteTransaction: (id) =>
+                set((s) => ({ transactions: s.transactions.filter((t) => t.id !== id) })),
+            getTotals: () => {
+                const { transactions } = get();
+                const income = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + (t.amount || 0), 0);
+                const expenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + (t.amount || 0), 0);
+                return { income, expenses, profit: income - expenses };
+            },
+        }),
+        { name: 'centro-finance' }
+    )
+);

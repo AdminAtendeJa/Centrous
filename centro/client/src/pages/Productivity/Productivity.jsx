@@ -139,7 +139,7 @@ export default function Productivity() {
                                 </div>
                             </div>
                             <p className="text-10 text-tertiary leading-relaxed">
-                                Seu pico de produtividade foi identificado entre as **10:00 e 11:30**. 
+                                Seu pico de produtividade foi identificado entre as <strong>10:00 e 11:30</strong>. 
                             </p>
                         </div>
                     </div>

@@ -1,16 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useOnboardingStore } from '../../store/index.js';
+import { useOnboardingStore, useAuthStore } from '../../store/index.js';
 import { useSettingsStore } from '../../store/index.js';
 import './Onboarding.css';
 
 const PROFESSIONS = [
-    { emoji: '🎨', label: 'Diseñador / Creativo', desc: 'Diseño gráfico, UX, branding, ilustración' },
-    { emoji: '📱', label: 'Creador de Contenido', desc: 'YouTube, TikTok, Instagram, podcasts' },
-    { emoji: '📊', label: 'Marketer / Publicista', desc: 'Ads, estrategia digital, email marketing' },
-    { emoji: '💻', label: 'Desarrollador', desc: 'Web, apps, software, freelance tech' },
-    { emoji: '🎓', label: 'Coach / Consultor', desc: 'Formación, mentoría, consultoría' },
-    { emoji: '✨', label: 'Otro / Múltiple', desc: 'Combino varios roles o es diferente' },
+    { emoji: '🎨', label: 'Designer / Criativo', desc: 'Design gráfico, UX, branding, ilustração' },
+    { emoji: '📱', label: 'Criador de Conteúdo', desc: 'YouTube, TikTok, Instagram, podcasts' },
+    { emoji: '📊', label: 'Marketer / Publicidade', desc: 'Ads, estratégia digital, email marketing' },
+    { emoji: '💻', label: 'Desenvolvedor', desc: 'Web, apps, software, freelance tech' },
+    { emoji: '🎓', label: 'Coach / Consultor', desc: 'Treinamento, mentoria, consultoria' },
+    { emoji: '🏪', label: 'Empreendedor', desc: 'Dono de negócio, startup, pequena empresa' },
+    { emoji: '💼', label: 'Vendas / Comercial', desc: 'SDR, AE, gestor comercial, BDR' },
+    { emoji: '✨', label: 'Outro / Múltiplo', desc: 'Combino vários papéis ou é diferente' },
 ];
 
 const APPS = [
@@ -22,22 +24,23 @@ const APPS = [
     { icon: '💳', label: 'Stripe' }, { icon: '🎨', label: 'Canva' },
     { icon: '💬', label: 'WhatsApp Business' }, { icon: '📹', label: 'Zoom' },
     { icon: '🛒', label: 'Shopify' }, { icon: '💡', label: 'Figma' },
+    { icon: '🗄️', label: 'Supabase' }, { icon: '⚡', label: 'n8n' },
 ];
 
 const CLIENT_TIERS = [
-    { emoji: '🌱', label: 'Solo empezando', desc: '0–5 clientes activos' },
-    { emoji: '🚀', label: 'En crecimiento', desc: '5–20 clientes activos' },
-    { emoji: '🏆', label: 'Establecido', desc: '20+ clientes o comunidad grande' },
-    { emoji: '🌍', label: 'Internacional', desc: 'Clientes en múltiples países' },
+    { emoji: '🌱', label: 'Só começando', desc: '0–5 clientes ativos' },
+    { emoji: '🚀', label: 'Em crescimento', desc: '5–20 clientes ativos' },
+    { emoji: '🏆', label: 'Estabelecido', desc: '20+ clientes ou comunidade grande' },
+    { emoji: '🌍', label: 'Internacional', desc: 'Clientes em múltiplos países' },
 ];
 
 const MODULES = [
-    { color: '#00d4aa', icon: '📬', label: 'Bandeja unificada' },
-    { color: '#6c63ff', icon: '📊', label: 'Meta Ads Panel' },
-    { color: '#ff6b6b', icon: '👥', label: 'CRM Clientes' },
+    { color: '#00d4aa', icon: '📬', label: 'Caixa de entrada unificada' },
+    { color: '#6c63ff', icon: '📊', label: 'Painel Meta Ads' },
+    { color: '#ff6b6b', icon: '👥', label: 'CRM de Clientes' },
     { color: '#00d4aa', icon: '📱', label: 'Social Media Hub' },
-    { color: '#6c63ff', icon: '📅', label: 'Agenda IA' },
-    { color: '#4ade80', icon: '📈', label: 'Analytics Pro' },
+    { color: '#6c63ff', icon: '💰', label: 'Gestão Financeira' },
+    { color: '#4ade80', icon: '🤖', label: 'Copilot IA Proativo' },
 ];
 
 const TOTAL_STEPS = 5;
@@ -60,7 +63,7 @@ export default function Onboarding() {
     // Typing effect state
     const [typedText, setTypedText] = useState('');
     const [typingDone, setTypingDone] = useState(false);
-    const aiMessage = 'Antes de empezar, necesito conocerte un poco. En menos de 2 minutos tendré tu workspace listo y personalizado. ¿Empezamos?';
+    const aiMessage = 'Antes de começar, preciso te conhecer um pouco. Em menos de 2 minutos terei seu workspace pronto e personalizado. Vamos começar?';
     const typingRef = useRef(null);
 
     useEffect(() => {
@@ -101,10 +104,10 @@ export default function Onboarding() {
     const handleFinish = async () => {
         const profile = { userName, profession, apps: [...selectedApps], clientTier };
         
-        updateSettings({ ownerName: userName || 'Usuario' });
+        updateSettings({ ownerName: userName || 'Usuário', companyName: userName ? `Negócio de ${userName}` : 'Minha Empresa' });
         completeOnboarding(profile);
 
-        // Sync with backend
+        // Sync with backend — useAuthStore is properly imported now
         const token = useAuthStore.getState().session?.access_token;
         if (token) {
             try {
@@ -143,9 +146,9 @@ export default function Onboarding() {
             <header className="ob-header">
                 <div className="ob-logo">
                     <div className="ob-logo-icon">⚡</div>
-                    WorkHub <span>AI</span>
+                    Centrous <span>AI</span>
                 </div>
-                <div className="ob-step-counter">Paso {step} de {TOTAL_STEPS}</div>
+                <div className="ob-step-counter">Passo {step} de {TOTAL_STEPS}</div>
             </header>
 
             {/* Progress */}
@@ -161,8 +164,8 @@ export default function Onboarding() {
                     {step === 1 && (
                         <>
                             <div className="ob-badge">Onboarding IA</div>
-                            <h1 className="ob-title">Hola, soy <span className="ob-highlight">WorkHub AI</span> 👋</h1>
-                            <p className="ob-subtitle">Tu workspace inteligente que se adapta a ti. Responde unas preguntas rápidas y configuro todo automáticamente.</p>
+                            <h1 className="ob-title">Olá, sou o <span className="ob-highlight">Centrous AI</span> 👋</h1>
+                            <p className="ob-subtitle">Seu workspace inteligente que se adapta a você. Responda algumas perguntas rápidas e configuro tudo automaticamente.</p>
 
                             <div className="ob-ai-box">
                                 <div className="ob-ai-avatar">🤖</div>
@@ -173,11 +176,11 @@ export default function Onboarding() {
                             </div>
 
                             <div className="ob-input-group">
-                                <label className="ob-label">¿Cómo te llamas?</label>
+                                <label className="ob-label">Como você se chama?</label>
                                 <input
                                     className="ob-input"
                                     type="text"
-                                    placeholder="Tu nombre o apodo..."
+                                    placeholder="Seu nome ou apelido..."
                                     value={userName}
                                     onChange={e => setUserName(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && goTo(2)}
@@ -186,7 +189,7 @@ export default function Onboarding() {
                             </div>
 
                             <button className="ob-btn" onClick={() => goTo(2)}>
-                                Comenzar configuración →
+                                Começar configuração →
                             </button>
                         </>
                     )}
@@ -194,9 +197,9 @@ export default function Onboarding() {
                     {/* ── STEP 2: Profession ── */}
                     {step === 2 && (
                         <>
-                            <div className="ob-badge">Tu perfil</div>
-                            <h1 className="ob-title">¿A qué te <span className="ob-highlight">dedicas?</span></h1>
-                            <p className="ob-subtitle">Esto me ayuda a priorizar las herramientas más relevantes para ti.</p>
+                            <div className="ob-badge">Seu perfil</div>
+                            <h1 className="ob-title">Qual é sua <span className="ob-highlight">profissão?</span></h1>
+                            <p className="ob-subtitle">Isso me ajuda a priorizar as ferramentas mais relevantes para você.</p>
 
                             <div className="ob-options-grid">
                                 {PROFESSIONS.map((p) => (
@@ -219,9 +222,9 @@ export default function Onboarding() {
                     {/* ── STEP 3: Apps ── */}
                     {step === 3 && (
                         <>
-                            <div className="ob-badge">Tus herramientas</div>
-                            <h1 className="ob-title">¿Qué apps <span className="ob-highlight">usas hoy?</span></h1>
-                            <p className="ob-subtitle">Selecciona todas las que uses. Las conectaré directamente a tu workspace.</p>
+                            <div className="ob-badge">Suas ferramentas</div>
+                            <h1 className="ob-title">Quais apps você <span className="ob-highlight">usa hoje?</span></h1>
+                            <p className="ob-subtitle">Selecione todos que você usa. Vou conectá-los diretamente ao seu workspace.</p>
 
                             <div className="ob-chips">
                                 {APPS.map((a) => (
@@ -242,9 +245,9 @@ export default function Onboarding() {
                     {/* ── STEP 4: Clients ── */}
                     {step === 4 && (
                         <>
-                            <div className="ob-badge">Tu operación</div>
-                            <h1 className="ob-title">Cuéntame sobre <span className="ob-highlight">tus clientes</span></h1>
-                            <p className="ob-subtitle">Así configuro el CRM y los paneles de métricas correctamente.</p>
+                            <div className="ob-badge">Sua operação</div>
+                            <h1 className="ob-title">Me conta sobre <span className="ob-highlight">seus clientes</span></h1>
+                            <p className="ob-subtitle">Assim configuro o CRM e os painéis de métricas corretamente.</p>
 
                             <div className="ob-options-grid ob-options-grid-2">
                                 {CLIENT_TIERS.map((c) => (
@@ -260,7 +263,7 @@ export default function Onboarding() {
                                 ))}
                             </div>
 
-                            <button className="ob-btn" onClick={() => goTo(5)}>¡Casi listo! →</button>
+                            <button className="ob-btn" onClick={() => goTo(5)}>Quase lá! →</button>
                         </>
                     )}
 
@@ -268,12 +271,12 @@ export default function Onboarding() {
                     {step === 5 && (
                         <div className="ob-final">
                             <div className="ob-final-icon">⚡</div>
-                            <div className="ob-badge" style={{ display: 'inline-flex', marginBottom: 16 }}>Workspace Listo</div>
-                            <h1 className="ob-title">Tu workspace <span className="ob-highlight">está configurado</span></h1>
-                            <p className="ob-subtitle">La IA analizó tu perfil y preparó todo. Esto es lo que activé para ti:</p>
+                            <div className="ob-badge" style={{ display: 'inline-flex', marginBottom: 16 }}>Workspace Pronto</div>
+                            <h1 className="ob-title">Seu workspace <span className="ob-highlight">está configurado{userName ? `, ${userName}` : ''}</span></h1>
+                            <p className="ob-subtitle">A IA analisou seu perfil e preparou tudo. Isso é o que ativei para você:</p>
 
                             <div className="ob-modules-box">
-                                <div className="ob-modules-title">✦ Módulos activados por la IA</div>
+                                <div className="ob-modules-title">✦ Módulos ativados pela IA</div>
                                 <div className="ob-modules-grid">
                                     {MODULES.map((m, i) => (
                                         <div key={m.label} className="ob-module" style={{ animationDelay: `${i * 0.1}s` }}>
@@ -285,7 +288,7 @@ export default function Onboarding() {
                             </div>
 
                             <button className="ob-btn" onClick={handleFinish}>
-                                Entrar a mi workspace →
+                                Entrar no meu workspace →
                             </button>
                         </div>
                     )}

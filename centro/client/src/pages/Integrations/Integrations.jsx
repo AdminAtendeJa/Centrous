@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
     Key, Webhook, Plus, Trash2, Copy, 
-    CheckCircle2, Terminal, Code, ExternalLink, ShieldAlert
+    CheckCircle2, Code, ShieldAlert, ExternalLink, Zap
 } from 'lucide-react';
 import { useAuthStore } from '../../store/index.js';
 import axios from 'axios';
@@ -13,16 +13,13 @@ export default function Integrations() {
     const [webhooks, setWebhooks] = useState([]);
     const [loading, setLoading] = useState(true);
     
-    // UI State
     const [newKeyName, setNewKeyName] = useState('');
     const [newWebhookUrl, setNewWebhookUrl] = useState('');
     const [newWebhookEvent, setNewWebhookEvent] = useState('lead.created');
     const [secretToken, setSecretToken] = useState(null);
 
     useEffect(() => {
-        if (session?.access_token) {
-            fetchData();
-        }
+        if (session?.access_token) fetchData();
     }, [session]);
 
     const fetchData = async () => {
@@ -32,11 +29,11 @@ export default function Integrations() {
                 axios.get('/api/developer/keys', { headers: { Authorization: `Bearer ${session.access_token}` }}),
                 axios.get('/api/developer/webhooks', { headers: { Authorization: `Bearer ${session.access_token}` }})
             ]);
-            setKeys(keysRes.data.data);
-            setWebhooks(hooksRes.data.data);
+            setKeys(keysRes.data.data || []);
+            setWebhooks(hooksRes.data.data || []);
         } catch (error) {
             console.error(error);
-            toast.error('Error cargando integraciones');
+            toast.error('Erro ao carregar integrações');
         } finally {
             setLoading(false);
         }
@@ -45,32 +42,28 @@ export default function Integrations() {
     const handleCreateKey = async (e) => {
         e.preventDefault();
         if (!newKeyName.trim()) return;
-        
         try {
             const res = await axios.post('/api/developer/keys', { name: newKeyName }, {
                 headers: { Authorization: `Bearer ${session.access_token}` }
             });
-            
             const { token, id, name, created_at } = res.data.data;
             setSecretToken(token);
             setKeys([{ id, name, created_at, last_used_at: null }, ...keys]);
             setNewKeyName('');
-            toast.success('API Key creada');
+            toast.success('API Key criada!');
         } catch (error) {
-            toast.error('Error al crear API Key');
+            toast.error('Erro ao criar API Key');
         }
     };
 
     const handleDeleteKey = async (id) => {
-        if (!confirm('¿Estás seguro de revocar este token? Las integraciones que lo usen fallarán.')) return;
+        if (!confirm('Tem certeza que deseja revogar este token? Integrações que o utilizam irão falhar.')) return;
         try {
-            await axios.delete(`/api/developer/keys/${id}`, {
-                headers: { Authorization: `Bearer ${session.access_token}` }
-            });
+            await axios.delete(`/api/developer/keys/${id}`, { headers: { Authorization: `Bearer ${session.access_token}` }});
             setKeys(keys.filter(k => k.id !== id));
-            toast.success('Token revocado');
+            toast.success('Token revogado');
         } catch (error) {
-            toast.error('Error revocando token');
+            toast.error('Erro ao revogar token');
         }
     };
 
@@ -80,100 +73,103 @@ export default function Integrations() {
         try {
             const res = await axios.post('/api/developer/webhooks', {
                 url: newWebhookUrl, event: newWebhookEvent
-            }, {
-                headers: { Authorization: `Bearer ${session.access_token}` }
-            });
+            }, { headers: { Authorization: `Bearer ${session.access_token}` }});
             setWebhooks([res.data.data, ...webhooks]);
             setNewWebhookUrl('');
-            toast.success('Webhook registrado');
+            toast.success('Webhook registrado!');
         } catch (error) {
-            toast.error('Error creando webhook');
+            toast.error('Erro ao criar webhook');
         }
     };
 
     const handleDeleteWebhook = async (id) => {
         try {
-            await axios.delete(`/api/developer/webhooks/${id}`, {
-                headers: { Authorization: `Bearer ${session.access_token}` }
-            });
+            await axios.delete(`/api/developer/webhooks/${id}`, { headers: { Authorization: `Bearer ${session.access_token}` }});
             setWebhooks(webhooks.filter(w => w.id !== id));
-            toast.success('Webhook eliminado');
+            toast.success('Webhook removido');
         } catch (error) {
-            toast.error('Error al eliminar');
+            toast.error('Erro ao remover');
         }
     };
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
-        toast.success('Copiado al portapapeles');
+        toast.success('Copiado para a área de transferência!');
     };
 
     return (
-        <div className="animate-in" style={{ paddingBottom: 40, maxWidth: 1000, margin: '0 auto' }}>
-            <div className="page-header" style={{ marginBottom: 32 }}>
-                <h1>Integraciones & API ⚡</h1>
-                <p>Conecta Centrous con n8n, Make, Zapier o tus propias aplicaciones.</p>
+        <div className="animate-in" style={{ padding: '16px', paddingBottom: 40 }}>
+            {/* Header */}
+            <div className="flex-between mb-6">
+                <div>
+                    <h1 className="text-18 font-extrabold text-primary tracking-tight">Integrações & API</h1>
+                    <p className="text-11 text-tertiary">Conecte o Centrous com n8n, Make, Zapier ou suas próprias aplicações.</p>
+                </div>
             </div>
 
+            {/* Secret Token Alert */}
             {secretToken && (
-                <div style={{ background: 'rgba(34, 197, 94, 0.1)', border: '1px solid var(--color-success)', borderRadius: 12, padding: 24, marginBottom: 32 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--color-success)', marginBottom: 12 }}>
-                        <ShieldAlert size={24} />
-                        <h2 style={{ fontSize: 18, fontWeight: 700 }}>Guarda tu Secret API Key</h2>
+                <div className="card-v3 mb-6" style={{ background: 'rgba(34, 197, 94, 0.06)', borderColor: 'rgba(34,197,94,0.3)', padding: 24 }}>
+                    <div className="flex items-center gap-3 mb-3" style={{ color: '#16a34a' }}>
+                        <ShieldAlert size={22} />
+                        <h2 className="text-14 font-bold">Guarde seu Secret API Key</h2>
                     </div>
-                    <p style={{ color: 'var(--text-secondary)', marginBottom: 16 }}>
-                        Por razones de seguridad, <strong>esta es la única vez que verás este token</strong>. Cópialo y guárdalo en un lugar seguro. Si lo pierdes, tendrás que generar uno nuevo.
+                    <p className="text-11 text-secondary mb-4">
+                        Por razões de segurança, <strong>esta é a única vez que você verá este token</strong>. Copie e guarde em local seguro.
                     </p>
-                    <div style={{ display: 'flex', gap: 12 }}>
-                        <input 
-                            value={secretToken}
-                            readOnly
-                            style={{ flex: 1, padding: '12px 16px', background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 8, fontFamily: 'monospace', fontSize: 16 }}
-                        />
-                        <button onClick={() => copyToClipboard(secretToken)} className="btn btn-primary">
-                            <Copy size={18} /> Copiar
+                    <div className="flex gap-2">
+                        <div className="config-input-v3 flex-1">
+                            <input value={secretToken} readOnly style={{ fontFamily: 'monospace', fontSize: 13 }} />
+                        </div>
+                        <button onClick={() => copyToClipboard(secretToken)} className="btn-v3-primary">
+                            <Copy size={14} /> Copiar
                         </button>
                     </div>
-                    <button onClick={() => setSecretToken(null)} className="btn btn-ghost" style={{ marginTop: 16 }}>
-                        Ya lo he guardado, ocultar mensaje
+                    <button onClick={() => setSecretToken(null)} className="btn-v3-ghost mt-3 text-11">
+                        Já salvei, ocultar mensagem
                     </button>
                 </div>
             )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 32 }}>
+            {/* Keys & Webhooks Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 24 }}>
                 
-                {/* Internal Integrations / API Keys */}
-                <div className="card">
-                    <div className="flex-between mb-4">
-                        <h2 style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}><Key size={18} /> Tokens de Acceso</h2>
-                        <span className="badge badge-primary">{keys.length} activos</span>
+                {/* API Keys */}
+                <div className="section-v3">
+                    <div className="section-header-v3 mb-4">
+                        <div className="flex items-center gap-2">
+                            <Key size={16} className="text-accent" />
+                            <span className="section-title-v3">Tokens de Acesso</span>
+                        </div>
+                        <span className="tag-v3 tag-blue">{keys.length} ativos</span>
                     </div>
 
-                    <form onSubmit={handleCreateKey} className="flex gap-2 mb-6">
-                        <input
-                            value={newKeyName}
-                            onChange={(e) => setNewKeyName(e.target.value)}
-                            placeholder="Nombre (ej. Conexión n8n)"
-                            style={{ flex: 1 }}
-                        />
-                        <button type="submit" className="btn btn-primary" disabled={loading}>
-                            <Plus size={16} /> Crear
+                    <form onSubmit={handleCreateKey} className="flex gap-2 mb-4">
+                        <div className="config-input-v3 flex-1">
+                            <input
+                                value={newKeyName}
+                                onChange={(e) => setNewKeyName(e.target.value)}
+                                placeholder="Nome (ex: Conexão n8n)"
+                            />
+                        </div>
+                        <button type="submit" className="btn-v3-primary" disabled={loading}>
+                            <Plus size={14} /> Criar
                         </button>
                     </form>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        {loading ? <div style={{ color: 'var(--text-muted)' }}>Cargando...</div> :
-                        keys.length === 0 ? <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>No tienes tokens activos.</div> :
+                    <div className="flex flex-col gap-2">
+                        {loading ? <div className="text-11 text-tertiary p-4 text-center">Carregando...</div> :
+                        keys.length === 0 ? <div className="text-11 text-tertiary p-4 text-center">Nenhum token ativo.</div> :
                         keys.map(k => (
-                            <div key={k.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: 'var(--color-surface-2)', borderRadius: 8 }}>
+                            <div key={k.id} className="flex-between p-3 border-v3 rounded-xl bg-white">
                                 <div>
-                                    <div style={{ fontWeight: 600, fontSize: 14 }}>{k.name}</div>
-                                    <div style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 4 }}>
-                                        Creado: {new Date(k.created_at).toLocaleDateString()}
+                                    <div className="text-12 font-bold text-primary">{k.name}</div>
+                                    <div className="text-10 text-tertiary mt-0.5">
+                                        Criado em {new Date(k.created_at).toLocaleDateString('pt-BR')}
                                     </div>
                                 </div>
-                                <button onClick={() => handleDeleteKey(k.id)} className="btn-icon" style={{ color: 'var(--color-danger)' }}>
-                                    <Trash2 size={16} />
+                                <button onClick={() => handleDeleteKey(k.id)} className="btn-icon-v3" style={{ color: 'var(--color-danger, #ef4444)' }}>
+                                    <Trash2 size={14} />
                                 </button>
                             </div>
                         ))}
@@ -181,44 +177,51 @@ export default function Integrations() {
                 </div>
 
                 {/* Webhooks */}
-                <div className="card">
-                    <div className="flex-between mb-4">
-                        <h2 style={{ fontSize: 16, display: 'flex', alignItems: 'center', gap: 8 }}><Webhook size={18} /> Webhooks Salientes</h2>
-                        <span className="badge" style={{ background: 'var(--color-surface-3)' }}>{webhooks.length} endpoints</span>
+                <div className="section-v3">
+                    <div className="section-header-v3 mb-4">
+                        <div className="flex items-center gap-2">
+                            <Webhook size={16} className="text-accent" />
+                            <span className="section-title-v3">Webhooks de Saída</span>
+                        </div>
+                        <span className="tag-v3 tag-zinc">{webhooks.length} endpoints</span>
                     </div>
 
-                    <form onSubmit={handleCreateWebhook} style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 24 }}>
+                    <form onSubmit={handleCreateWebhook} className="flex flex-col gap-2 mb-4">
                         <select 
                             value={newWebhookEvent} 
                             onChange={(e) => setNewWebhookEvent(e.target.value)}
-                            style={{ padding: '10px 12px', background: 'var(--color-surface-2)', border: '1px solid var(--color-border)', borderRadius: 8, color: 'var(--text)' }}
+                            className="input-v3"
                         >
-                            <option value="lead.created">Lead Creado (lead.created)</option>
-                            <option value="task.created">Tarea Creada (task.created)</option>
+                            <option value="lead.created">Lead Criado (lead.created)</option>
+                            <option value="lead.updated">Lead Atualizado (lead.updated)</option>
+                            <option value="task.created">Tarefa Criada (task.created)</option>
                         </select>
                         <div className="flex gap-2">
-                            <input
-                                value={newWebhookUrl}
-                                onChange={(e) => setNewWebhookUrl(e.target.value)}
-                                placeholder="URL (ej. https://n8n.miweb.com/webhook/123)"
-                                style={{ flex: 1 }}
-                            />
-                            <button type="submit" className="btn btn-primary" disabled={loading}>
-                                <Plus size={16} /> Añadir
+                            <div className="config-input-v3 flex-1">
+                                <input
+                                    value={newWebhookUrl}
+                                    onChange={(e) => setNewWebhookUrl(e.target.value)}
+                                    placeholder="URL (ex: https://n8n.meusite.com/webhook/123)"
+                                />
+                            </div>
+                            <button type="submit" className="btn-v3-primary" disabled={loading}>
+                                <Plus size={14} /> Adicionar
                             </button>
                         </div>
                     </form>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                        {loading ? <div style={{ color: 'var(--text-muted)' }}>Cargando...</div> :
-                        webhooks.length === 0 ? <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>No hay webhooks registrados.</div> :
+                    <div className="flex flex-col gap-2">
+                        {loading ? <div className="text-11 text-tertiary p-4 text-center">Carregando...</div> :
+                        webhooks.length === 0 ? <div className="text-11 text-tertiary p-4 text-center">Nenhum webhook registrado.</div> :
                         webhooks.map(w => (
-                            <div key={w.id} style={{ padding: 12, background: 'var(--color-surface-2)', borderRadius: 8 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                                    <span className="badge badge-primary" style={{ fontSize: 11 }}>{w.event}</span>
-                                    <button onClick={() => handleDeleteWebhook(w.id)} className="btn-icon" style={{ padding: 2, color: 'var(--color-danger)' }}><Trash2 size={14} /></button>
+                            <div key={w.id} className="p-3 border-v3 rounded-xl bg-white">
+                                <div className="flex-between mb-2">
+                                    <span className="tag-v3 tag-blue text-10">{w.event}</span>
+                                    <button onClick={() => handleDeleteWebhook(w.id)} className="btn-icon-v3" style={{ color: 'var(--color-danger, #ef4444)' }}>
+                                        <Trash2 size={12} />
+                                    </button>
                                 </div>
-                                <div style={{ fontSize: 12, fontFamily: 'monospace', color: 'var(--text-muted)', wordBreak: 'break-all' }}>
+                                <div className="text-10 text-tertiary" style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
                                     {w.url}
                                 </div>
                             </div>
@@ -227,49 +230,46 @@ export default function Integrations() {
                 </div>
             </div>
 
-            {/* Documentación Viva */}
-            <div className="card">
-                <h2 style={{ fontSize: 18, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Code size={20} /> Documentación de la API
-                </h2>
-                <p style={{ color: 'var(--text-secondary)', marginBottom: 20 }}>
-                    Utiliza tus tokens de acceso en el header <code style={{ background: 'var(--color-surface-3)', padding: '2px 6px', borderRadius: 4 }}>Authorization: Bearer &lt;TOKEN&gt;</code> para interactuar con la plataforma.
-                </p>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                    {/* Crear Lead */}
-                    <div style={{ background: '#0f172a', borderRadius: 8, overflow: 'hidden' }}>
-                        <div style={{ padding: '8px 16px', background: '#1e293b', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>POST /api/external/leads</span>
-                            <span style={{ fontSize: 11, background: '#10b981', color: '#fff', padding: '2px 8px', borderRadius: 12 }}>Crear Prospecto</span>
-                        </div>
-                        <pre style={{ padding: 16, margin: 0, fontSize: 13, color: '#e2e8f0', overflowX: 'auto' }}>
-                            <code>{`curl -X POST ${window.location.origin}/api/external/leads \\
--H "Authorization: Bearer cntr_sk_your_token_here" \\
--H "Content-Type: application/json" \\
--d '{
-  "name": "Elon Musk",
-  "email": "elon@tesla.com",
-  "phone": "+123456789",
-  "source": "Landing Page X"
-}'`}</code>
-                        </pre>
-                    </div>
-
-                    {/* Obtener Leads */}
-                    <div style={{ background: '#0f172a', borderRadius: 8, overflow: 'hidden' }}>
-                        <div style={{ padding: '8px 16px', background: '#1e293b', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: 13, color: '#94a3b8', fontWeight: 600 }}>GET /api/external/leads</span>
-                            <span style={{ fontSize: 11, background: '#3b82f6', color: '#fff', padding: '2px 8px', borderRadius: 12 }}>Listar Prospectos</span>
-                        </div>
-                        <pre style={{ padding: 16, margin: 0, fontSize: 13, color: '#e2e8f0', overflowX: 'auto' }}>
-                            <code>{`curl -X GET ${window.location.origin}/api/external/leads?limit=10 \\
--H "Authorization: Bearer cntr_sk_your_token_here"`}</code>
-                        </pre>
+            {/* API Docs */}
+            <div className="section-v3">
+                <div className="section-header-v3 mb-6">
+                    <div className="flex items-center gap-2">
+                        <Code size={18} className="text-accent" />
+                        <span className="section-title-v3">Documentação da API</span>
                     </div>
                 </div>
-            </div>
+                <p className="text-11 text-secondary mb-6">
+                    Use seus tokens de acesso no header{' '}
+                    <code style={{ background: 'var(--color-background-tertiary)', padding: '2px 6px', borderRadius: 4, fontFamily: 'monospace', fontSize: 11 }}>
+                        Authorization: Bearer &lt;TOKEN&gt;
+                    </code>{' '}
+                    para interagir com a plataforma.
+                </p>
 
+                <div className="flex flex-col gap-4">
+                    {[
+                        { method: 'POST', path: '/api/external/leads', label: 'Criar Prospecto', color: '#10b981', body: `{\n  "name": "João Silva",\n  "email": "joao@empresa.com",\n  "phone": "+55119999999",\n  "source": "Landing Page"\n}` },
+                        { method: 'GET', path: '/api/external/leads', label: 'Listar Prospectos', color: '#3b82f6', body: null },
+                    ].map((endpoint, i) => (
+                        <div key={i} style={{ background: '#0f172a', borderRadius: 12, overflow: 'hidden' }}>
+                            <div style={{ padding: '8px 16px', background: '#1e293b', borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: 12, color: '#94a3b8', fontFamily: 'monospace', fontWeight: 600 }}>
+                                    {endpoint.method} {endpoint.path}
+                                </span>
+                                <span style={{ fontSize: 10, background: endpoint.color, color: '#fff', padding: '2px 8px', borderRadius: 12, fontWeight: 700 }}>
+                                    {endpoint.label}
+                                </span>
+                            </div>
+                            <pre style={{ padding: 16, margin: 0, fontSize: 12, color: '#e2e8f0', overflowX: 'auto', fontFamily: 'monospace' }}>
+                                <code>{`curl -X ${endpoint.method} ${window.location.origin}${endpoint.path} \\
+-H "Authorization: Bearer cntr_sk_seu_token" \\
+-H "Content-Type: application/json"${endpoint.body ? ` \\
+-d '${endpoint.body}'` : ''}`}</code>
+                            </pre>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }

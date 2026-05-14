@@ -3,7 +3,7 @@ import { Bot, Sparkles, X, Activity, CheckCircle, FileText, MessageSquare, Copy,
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSettingsStore, useCRMStore, useTasksStore, useNotesStore, useProposalsStore, useUIStore, useAIStore, useAnalyticsStore, useAuthStore } from '../../store/index.js';
+import { useSettingsStore, useCRMStore, useTasksStore, useNotesStore, useProposalsStore, useUIStore, useAIStore, useAnalyticsStore, useAuthStore, useOnboardingStore } from '../../store/index.js';
 
 export default function Copilot() {
     const [open, setOpen] = useState(false);
@@ -11,6 +11,8 @@ export default function Copilot() {
     const [result, setResult] = useState(null);
     const [showGreeting, setShowGreeting] = useState(true);
     const { settings } = useSettingsStore();
+    const { profile } = useOnboardingStore();
+    const userName = settings.ownerName || 'empreendedor';
 
     useEffect(() => {
         const t = setTimeout(() => setShowGreeting(false), 10000);
@@ -42,17 +44,25 @@ export default function Copilot() {
             };
 
             const systemPrompt = `
-Eres GROQ COPILOT, un agente de IA experto. Tienes acceso a la memoria cognitiva del usuario y su telemetría en tiempo real.
-El usuario actual tiene el rol de: **${context.userRole}**.
+Você é o CENTROUS COPILOT, um agente de IA especializado em negócios para empreendedores.
 
-TU OBJETIVO:
-1. Resumen táctico de 2 oraciones.
-2. Sugerir 2-3 tareas críticas.
-3. Añadir 1-2 notas estratégicas.
-4. Respuestas sugeridas a leads.
-5. 1 Propuesta hook.
+Usuário: ${userName}
+Profissão: ${profile?.profession || context.userRole || 'Empreendedor'}
+Aplicativos usados: ${profile?.apps?.join(', ') || 'diversos'}
 
-Responde solo JSON crudo:
+CONTEXTO DO NEGÓCIO:
+- ${context.leads?.length || 0} leads no CRM
+- ${context.tasks?.filter(t => !t.done)?.length || 0} tarefas pendentes
+- ${context.tasks?.filter(t => t.priority === 'high' && !t.done)?.length || 0} tarefas urgentes
+
+SEU OBJETIVO (baseado na profissão do usuário):
+1. Resumo tático em 2 frases focado no dia do usuário.
+2. Sugerir 2-3 tarefas críticas alinhadas à profissão.
+3. Adicionar 1-2 notas estratégicas relevantes.
+4. Sugestões de resposta para os leads mais recentes.
+5. 1 Ideia de proposta de alto valor.
+
+Responda APENAS JSON puro sem markdown:
 {
   "resumen": "string",
   "tareasSugeridas": [ { "texto": "string", "prioridad": "high|medium|low" } ],
@@ -107,7 +117,7 @@ Responde solo JSON crudo:
                             color: 'var(--color-text-primary)'
                         }}
                     >
-                        <span>Olá Victor! Sou seu Copiloto 🤖. Vamos escanear seu dia?</span>
+                        <span>Olá {userName}! Sou seu Copiloto 🤖. Vamos escanear seu dia?</span>
                         <button onClick={() => setShowGreeting(false)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--color-text-tertiary)' }}><X size={14} /></button>
                     </motion.div>
                 )}
