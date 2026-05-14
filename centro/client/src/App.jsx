@@ -12,6 +12,20 @@ import TopBar from './components/layout/TopBar';
 import UtilityPanel from './components/layout/UtilityPanel';
 import IntegrationsBar from './components/layout/IntegrationsBar';
 import Copilot from './components/ui/Copilot.jsx';
+import { NavLink } from 'react-router-dom';
+import { Grid, Users, DollarSign, MessageCircle, Settings as SettingsIcon } from 'lucide-react';
+
+function MobileBottomNav() {
+  return (
+    <nav className="mobile-bottom-nav">
+      <NavLink to="/dashboard" className={({isActive})=>`mobile-nav-item${isActive?' active':''}`}><Grid size={20}/><span>Início</span></NavLink>
+      <NavLink to="/crm" className={({isActive})=>`mobile-nav-item${isActive?' active':''}`}><Users size={20}/><span>CRM</span></NavLink>
+      <NavLink to="/finance" className={({isActive})=>`mobile-nav-item${isActive?' active':''}`}><DollarSign size={20}/><span>Finanças</span></NavLink>
+      <NavLink to="/inbox" className={({isActive})=>`mobile-nav-item${isActive?' active':''}`}><MessageCircle size={20}/><span>Inbox</span></NavLink>
+      <NavLink to="/settings" className={({isActive})=>`mobile-nav-item${isActive?' active':''}`}><SettingsIcon size={20}/><span>Ajustes</span></NavLink>
+    </nav>
+  );
+}
 import ErrorBoundary from './components/ui/ErrorBoundary.jsx';
 
 // Lazy Pages
@@ -132,6 +146,7 @@ function AnimatedRoutes() {
                     
                     <div className="main-canvas-v3">
                         <TopBar title={currentTitle} />
+                        <MobileBottomNav />
                         <main className="content-v3">
                             <ErrorBoundary dropoff={true}>
                                 <Suspense fallback={<div className="flex-center" style={{ height: '100%', justifyContent: 'center' }}><div className="loading-spinner" /></div>}>

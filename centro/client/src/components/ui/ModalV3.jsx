@@ -1,31 +1,15 @@
-import React from 'react';
 import { X } from 'lucide-react';
-
 export default function ModalV3({ isOpen, onClose, title, children, footer }) {
   if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-md rounded-xl border-v3 shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-        {/* Header */}
-        <div className="flex-between p-4 border-bottom-v3 bg-background-secondary">
-          <span className="text-13 font-bold text-primary">{title}</span>
-          <button onClick={onClose} className="btn-icon-v3 hover:bg-background-tertiary">
-            <X size={16} />
-          </button>
+    <div style={{position:'fixed',inset:0,zIndex:1000,display:'flex',alignItems:'center',justifyContent:'center',background:'rgba(0,0,0,0.4)',backdropFilter:'blur(4px)'}} onClick={onClose}>
+      <div className='modal-v3-content' onClick={e=>e.stopPropagation()} style={{background:'white',borderRadius:16,width:'min(560px,95vw)',maxHeight:'85vh',display:'flex',flexDirection:'column',boxShadow:'0 24px 64px rgba(0,0,0,0.18)'}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'20px 24px',borderBottom:'0.5px solid rgba(0,0,0,0.07)',flexShrink:0}}>
+          <span style={{fontSize:15,fontWeight:700,color:'var(--txt-0,#0f172a)'}}>{title}</span>
+          <button onClick={onClose} style={{width:28,height:28,borderRadius:8,border:'none',background:'transparent',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--txt-2,#64748b)'}}><X size={16}/></button>
         </div>
-
-        {/* Content */}
-        <div className="p-5 overflow-y-auto max-h-[70vh]">
-          {children}
-        </div>
-
-        {/* Footer */}
-        {footer && (
-          <div className="flex-between p-4 border-top-v3 bg-background-secondary gap-3">
-            {footer}
-          </div>
-        )}
+        <div style={{padding:'20px 24px',overflowY:'auto',flex:1}}>{children}</div>
+        {footer && <div style={{padding:'16px 24px',borderTop:'0.5px solid rgba(0,0,0,0.07)',display:'flex',gap:8,justifyContent:'flex-end',flexShrink:0}}>{footer}</div>}
       </div>
     </div>
   );
